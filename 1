@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Pizza Meny</title>
+<meta name="theme-color" content="#c41e3a">
+<style>
+:root{--bg:#0e0e0f;--card:#1a1a1c;--text:#f2f2f2;--muted:#a8a8a8;--line:#2a2a2c;--red:#ff3b5c;--green:#30d158;--blue:#4da3ff}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+header{position:sticky;top:0;z-index:10;background:linear-gradient(90deg,#c41e3a,#a01830);padding:14px 16px;display:flex;justify-content:space-between;align-items:center}
+h1{font-size:1.25rem;font-weight:800}
+header p{font-size:.75rem;opacity:.9}
+.slumpa{background:rgba(255,255,255,.2);border:0;color:#fff;padding:7px 12px;border-radius:16px;font-weight:700;font-size:.8rem}
+.wrap{padding:14px 16px 80px}
+input{width:100%;padding:13px 14px;border-radius:12px;border:1.5px solid var(--line);background:var(--card);color:var(--text);font-size:1rem;outline:none}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:12px 0;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex-shrink:0;padding:7px 12px;border-radius:20px;border:1px solid var(--line);background:var(--card);color:var(--muted);font-size:.82rem;font-weight:650}
+.chip.on{background:var(--red);border-color:var(--red);color:#fff}
+.count{font-size:.85rem;color:var(--muted);margin-bottom:10px}
+.card{background:var(--card);border-radius:16px;padding:14px;margin-bottom:12px}
+.card h2{font-size:1.05rem;margin-bottom:4px}
+.meta{font-size:.82rem;color:var(--muted);margin-bottom:8px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.badge{font-size:.7rem;font-weight:800;padding:2px 6px;border-radius:6px;background:rgba(48,209,88,.18);color:var(--green)}
+.badge.s{background:rgba(255,196,0,.18);color:#ffc400}
+.desc{font-size:.85rem;color:var(--muted);margin-bottom:12px}
+.row{display:flex;gap:8px}
+.row a{flex:1;text-align:center;text-decoration:none;padding:10px 0;border-radius:12px;font-weight:700;font-size:.85rem;color:#fff}
+.ring{background:var(--red)}.map{background:#1a73e8}.meny{background:rgba(48,209,88,.18);color:var(--green)!important}
+.off{opacity:.35;pointer-events:none}
+.empty{text-align:center;padding:50px 10px;color:var(--muted)}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>🍕 Pizza Meny</h1>
+    <p id="sub">Laddar...</p>
+  </div>
+  <button class="slumpa" onclick="slumpa()">🎲 Slumpa</button>
+</header>
+<div class="wrap">
+  <input id="q" type="search" placeholder="Sök pizzeria eller stad..." oninput="render()">
+  <div class="chips">
+    <button class="chip on" data-f="all" onclick="setF('all')">Alla</button>
+    <button class="chip" data-f="menu" onclick="setF('menu')">📋 Meny</button>
+    <button class="chip" data-f="spon" onclick="setF('spon')">Sponsrad</button>
+  </div>
+  <div class="count" id="count"></div>
+  <div id="list"></div>
+</div>
+<script>
+const URL="https://cmmnqckszwgsvaaawouw.supabase.co";
+const KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNtbW5xY2tzendnc3ZhYWF3b3V3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc1MDM3OTcsImV4cCI6MjEwMzA3OTc5N30.3q6gLw1Zz2ql__Va29fYPwjCkdnJ9-cO1MmKmluF30g";
+let all=[], filter="all";
+async function load(){
+  try{
+    const r=await fetch(URL+"/rest/v1/pizzerias?select=*&order=rating.desc",{
+      headers:{apikey:KEY,Authorization:"Bearer "+KEY}
+    });
+    if(!r.ok) throw new Error(await r.text());
+    all=await r.json();
+    document.getElementById("sub").textContent=all.length+" pizzerior · live";
+    render();
+  }catch(e){
+    document.getElementById("sub").textContent="Kunde inte hämta data";
+    document.getElementById("list").innerHTML="<div class='empty'>Fel: "+e.message+"</div>";
+  }
+}
+function setF(f){
+  filter=f;
+  document.querySelectorAll(".chip").forEach(c=>c.classList.toggle("on",c.dataset.f===f));
+  render();
+}
+function getList(){
+  const q=document.getElementById("q").value.toLowerCase().trim();
+  return all.filter(p=>{
+    if(filter==="menu"&&!p.menu_url) return false;
+    if(filter==="spon"&&!p.is_sponsored) return false;
+    if(!q) return true;
+    return (p.name+" "+p.city+" "+(p.country||"")).toLowerCase().includes(q);
+  }).sort((a,b)=>(b.is_sponsored-a.is_sponsored)||((b.rating||0)-(a.rating||0)));
+}
+function render(){
+  const list=getList();
+  document.getElementById("count").innerHTML="Visar <b style='color:var(--text)'>"+list.length+"</b>";
+  if(!list.length){document.getElementById("list").innerHTML="<div class='empty'>🍕<br>Inga pizzerior hittades</div>";return;}
+  document.getElementById("list").innerHTML=list.map(p=>`
+    <article class="card">
+      <h2>${p.name}</h2>
+      <div class="meta">
+        <span>${p.city}, ${p.country||"Sverige"}</span>
+        ${p.rating?`<span>⭐ ${p.rating}</span>`:""}
+        ${p.menu_url?"<span class='badge'>Meny</span>":""}
+        ${p.is_sponsored?"<span class='badge s'>Sponsrad</span>":""}
+      </div>
+      ${p.description?`<p class="desc">${p.description}</p>`:""}
+      <div class="row">
+        ${p.phone?`<a class="ring" href="tel:${p.phone}">📞 Ring</a>`:"<a class='ring off'>📞</a>"}
+        ${p.lat?`<a class="map" target="_blank" href="https://maps.apple.com/?daddr=${p.lat},${p.lon}">📍 Karta</a>`:"<a class='map off'>📍</a>"}
+        ${p.menu_url?`<a class="meny" target="_blank" href="${p.menu_url}">📋 Meny</a>`:"<a class='meny off'>📋</a>"}
+      </div>
+    </article>`).join("");
+}
+function slumpa(){
+  const list=getList();
+  if(!list.length) return alert("Inget att slumpa");
+  const p=list[Math.floor(Math.random()*list.length)];
+  document.getElementById("q").value=p.name;
+  render();
+  alert("🎲 "+p.name+" · "+p.city);
+}
+load();
+</script>
+</body>
+</html>
