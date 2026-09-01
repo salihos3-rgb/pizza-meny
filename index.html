@@ -107,7 +107,7 @@ header p{font-size:.72rem;opacity:.9}
 <script>
 const URL="https://cmmnqckszwgsvaaawouw.supabase.co";
 const KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNtbW5xY2tzendnc3ZhYWF3b3V3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc1MDM3OTcsImV4cCI6MjEwMzA3OTc5N30.3q6gLw1Zz2ql__Va29fYPwjCkdnJ9-cO1MmKmluF30g";
-const TOP=["Stockholm","Göteborg","Malmö","Uppsala","Västerås","Örebro","Linköping","Helsingborg","Norrköping","Jönköping","Lund","Umeå"];
+const TOP=["Stockholm","Göteborg","Malmö","Uppsala","Västerås","Örebro","Linköping","Helsingborg","Norrköping","Jönköping","Lund","Umeå","Eskilstuna"];
 let all=[], items=[], filter="all", city="";
 function favs(){try{return JSON.parse(localStorage.getItem("pm_fav")||"[]")}catch(e){return[]}}
 function saveFav(a){localStorage.setItem("pm_fav",JSON.stringify(a))}
@@ -116,7 +116,7 @@ function toggleFav(id){const a=favs();const i=a.indexOf(id);if(i>=0)a.splice(i,1
 function rates(){try{return JSON.parse(localStorage.getItem("pm_rate")||"{}")}catch(e){return{}}}
 function setRate(id,n){const r=rates();r[id]=n;localStorage.setItem("pm_rate",JSON.stringify(r));if(document.getElementById("detailPage").classList.contains("on"))openDetail(id)}
 async function page(off){
-  const r=await fetch(URL+"/rest/v1/pizzerias?select=*&order=is_sponsored.desc,rating.desc&limit=1000&offset="+off,{headers:{apikey:KEY,Authorization:"Bearer "+KEY,Prefer:"count=exact"}});
+  const r=await fetch(URL+"/rest/v1/pizzerias?select=*&order=id.asc&limit=1000&offset="+off,{headers:{apikey:KEY,Authorization:"Bearer "+KEY,Prefer:"count=exact"}});
   if(!r.ok) throw new Error(await r.text());
   return {rows:await r.json(),total:parseInt(((r.headers.get("content-range")||"").split("/")[1]||"0"),10)};
 }
@@ -124,6 +124,9 @@ async function load(){
   try{
     all=[];let off=0,total=Infinity;
     while(off<total){const p=await page(off);all=all.concat(p.rows);total=p.total||all.length;off+=1000}
+    const seen=new Set();
+    all=all.filter(p=>seen.has(p.id)?false:(seen.add(p.id),true));
+    all.sort((a,b)=>(b.is_sponsored?1:0)-(a.is_sponsored?1:0)||(b.rating||0)-(a.rating||0)||(a.name||"").localeCompare(b.name||"","sv"));
     const ir=await fetch(URL+"/rest/v1/pizza_items?select=pizzeria_id,name,price_sek",{headers:{apikey:KEY,Authorization:"Bearer "+KEY}});
     items=ir.ok?await ir.json():[];
     document.getElementById("sub").textContent=all.length+" pizzerior · live";
@@ -141,11 +144,13 @@ function syncClear(){document.getElementById("clr").classList.toggle("on",!!(doc
 function menuOf(id){return items.filter(x=>x.pizzeria_id===id)}
 function getList(){
   const q=document.getElementById("q").value.toLowerCase().trim();
+  const cities=new Set(all.map(p=>(p.city||"").toLowerCase()).filter(Boolean));
+  const exactCity=(city||"").toLowerCase() || (cities.has(q)?q:"");
   return all.filter(p=>{
     if(filter==="fav"&&!isFav(p.id)) return false;
     if(filter==="menu"&&!p.menu_url) return false;
     if(filter==="phone"&&!p.phone) return false;
-    if(city && (p.city||"").toLowerCase()!==city.toLowerCase() && !(p.name+" "+p.city).toLowerCase().includes(q)) return false;
+    if(exactCity) return (p.city||"").toLowerCase()===exactCity;
     if(!q) return true;
     return (p.name+" "+(p.city||"")).toLowerCase().includes(q);
   });
