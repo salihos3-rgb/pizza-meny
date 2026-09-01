@@ -134,7 +134,7 @@ function render(){
         ${p.phone?`<a class="ring" href="tel:${p.phone}">📞 Ring</a>`:"<a class='ring off'>📞</a>"}
         ${p.lat?`<a class="map" target="_blank" href="https://maps.apple.com/?daddr=${p.lat},${p.lon}">📍 Karta</a>`:"<a class='map off'>📍</a>"}
         ${p.menu_url?`<a class="meny" target="_blank" rel="noopener" href="${p.menu_url}">🔗 Sajt</a>`:"<a class='meny off'>🔗</a>"}
-        <button class="claim" onclick='openClaim(${JSON.stringify(p.id)},${JSON.stringify(p.name)})'>Äg</button>
+        <button class="claim" onclick='openClaim(${JSON.stringify(p.id)},${JSON.stringify(p.name)},${JSON.stringify(p.phone||"")})'>Äg</button>
       </div>
     </article>`).join("")+(list.length>200?"<p class='empty'>Visar 200. Sök för att begränsa.</p>":"");
 }
@@ -144,39 +144,6 @@ function slumpa(){
   document.getElementById("q").value=p.name; render();
   alert("🎲 "+p.name+" · "+p.city);
 }
-function openClaim(id,name){
-  document.getElementById("pid").value=id;
-  document.getElementById("stitle").textContent="Äg "+name;
-  document.getElementById("sdesc").textContent="Ni syns redan. Ta över sidan gratis. Bocka i om ni vill synas högre.";
-  document.getElementById("mask").classList.add("on");
-}
-function openInfo(){
-  document.getElementById("pid").value="";
-  document.getElementById("stitle").textContent="Äg din pizzeria";
-  document.getElementById("sdesc").textContent="Sök upp er i listan eller fyll i här. Gratis claim. Syns högre är tillval.";
-  document.getElementById("mask").classList.add("on");
-}
-function closeSheet(){document.getElementById("mask").classList.remove("on");}
-async function sendClaim(){
-  const name=document.getElementById("cname").value.trim();
-  const phone=document.getElementById("cphone").value.trim();
-  const email=document.getElementById("cmail").value.trim();
-  const web=document.getElementById("cweb").value.trim();
-  const boost=document.getElementById("cboost").checked;
-  const pid=document.getElementById("pid").value||null;
-  if(!name||!phone){alert("Namn och telefon behövs");return;}
-  const note=JSON.stringify({name,phone,email,web,boost,when:new Date().toISOString()});
-  const body={pizzeria_id:pid,proof_note:note,status:"pending"};
-  const r=await fetch(URL+"/rest/v1/claims",{
-    method:"POST",
-    headers:{apikey:KEY,Authorization:"Bearer "+KEY,"Content-Type":"application/json",Prefer:"return=minimal"},
-    body:JSON.stringify(body)
-  });
-  if(!r.ok){alert("Kunde inte skicka: "+await r.text());return;}
-  closeSheet();
-  alert(boost?"Tack. Claim + önskan om Syns högre är inne.":"Tack. Vi granskar din claim.");
-}
-load();
-</script>
-</body>
-</html>
+function digits(s){
+  s=(s||"").replace(/\D/g,"");
+  if(s.startsWith("46")&&s.length>=10)
