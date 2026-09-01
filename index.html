@@ -13,8 +13,8 @@ header{position:sticky;top:0;z-index:10;background:linear-gradient(90deg,#c41e3a
 h1{font-size:1.25rem;font-weight:800}
 header p{font-size:.75rem;opacity:.9}
 .slumpa{background:rgba(255,255,255,.2);border:0;color:#fff;padding:7px 12px;border-radius:16px;font-weight:700;font-size:.8rem}
-.wrap{padding:14px 16px 80px}
-input{width:100%;padding:13px 14px;border-radius:12px;border:1.5px solid var(--line);background:var(--card);color:var(--text);font-size:1rem;outline:none}
+.wrap{padding:14px 16px 90px}
+input,textarea{width:100%;padding:13px 14px;border-radius:12px;border:1.5px solid var(--line);background:var(--card);color:var(--text);font-size:1rem;outline:none}
 .chips{display:flex;gap:8px;overflow-x:auto;padding:12px 0;scrollbar-width:none}
 .chip{flex-shrink:0;padding:7px 12px;border-radius:20px;border:1px solid var(--line);background:var(--card);color:var(--muted);font-size:.82rem;font-weight:650}
 .chip.on{background:var(--red);border-color:var(--red);color:#fff}
@@ -25,11 +25,23 @@ input{width:100%;padding:13px 14px;border-radius:12px;border:1.5px solid var(--l
 .badge{font-size:.7rem;font-weight:800;padding:2px 6px;border-radius:6px;background:rgba(48,209,88,.18);color:var(--green)}
 .badge.s{background:rgba(255,196,0,.18);color:#ffc400}
 .desc{font-size:.85rem;color:var(--muted);margin-bottom:12px}
-.row{display:flex;gap:8px}
-.row a{flex:1;text-align:center;text-decoration:none;padding:10px 0;border-radius:12px;font-weight:700;font-size:.85rem;color:#fff}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.row a,.row button{flex:1;min-width:72px;text-align:center;text-decoration:none;padding:10px 0;border-radius:12px;font-weight:700;font-size:.82rem;color:#fff;border:0}
 .ring{background:var(--red)}.map{background:#1a73e8}.meny{background:rgba(48,209,88,.18);color:var(--green)!important}
+.claim{background:#2a2a2c;color:var(--text)!important}
 .off{opacity:.35;pointer-events:none}
 .empty{text-align:center;padding:50px 10px;color:var(--muted)}
+.mask{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:40;display:none;align-items:flex-end}
+.mask.on{display:flex}
+.sheet{background:#161618;width:100%;border-radius:20px 20px 0 0;padding:18px 16px 28px;max-height:88vh;overflow:auto}
+.sheet h3{font-size:1.15rem;margin-bottom:6px}
+.sheet p{color:var(--muted);font-size:.88rem;margin-bottom:12px}
+.sheet label{display:block;font-size:.78rem;color:var(--muted);margin:10px 0 4px}
+.sheet .go{width:100%;margin-top:14px;background:var(--red);border:0;color:#fff;padding:14px;border-radius:12px;font-weight:800;font-size:1rem}
+.sheet .x{background:transparent;border:0;color:var(--muted);float:right;font-size:1.2rem}
+.check{display:flex;gap:8px;align-items:center;margin-top:12px;color:var(--muted);font-size:.85rem}
+.owner{position:fixed;bottom:16px;left:16px;right:16px;z-index:20}
+.owner a{display:block;text-align:center;background:#1a1a1c;border:1px solid var(--line);color:var(--text);padding:12px;border-radius:14px;text-decoration:none;font-weight:700}
 </style>
 </head>
 <body>
@@ -44,36 +56,47 @@ input{width:100%;padding:13px 14px;border-radius:12px;border:1.5px solid var(--l
   <input id="q" type="search" placeholder="Sök pizzeria eller stad..." oninput="render()">
   <div class="chips">
     <button class="chip on" data-f="all" onclick="setF('all')">Alla</button>
-    <button class="chip" data-f="menu" onclick="setF('menu')">📋 Meny / sajt</button>
+    <button class="chip" data-f="menu" onclick="setF('menu')">🔗 Sajt</button>
     <button class="chip" data-f="phone" onclick="setF('phone')">📞 Telefon</button>
     <button class="chip" data-f="spon" onclick="setF('spon')">Sponsrad</button>
   </div>
   <div class="count" id="count"></div>
   <div id="list"></div>
 </div>
+<div class="owner"><a href="#claim-info" onclick="openInfo();return false;">Är du pizzeria? Äg din sida – gratis</a></div>
+<div class="mask" id="mask">
+  <div class="sheet">
+    <button class="x" onclick="closeSheet()">✕</button>
+    <h3 id="stitle">Äg denna sida</h3>
+    <p id="sdesc">Ni syns redan. Ta över på 60 sekunder.</p>
+    <input type="hidden" id="pid">
+    <label>Ditt namn</label>
+    <input id="cname" placeholder="Namn">
+    <label>Telefon</label>
+    <input id="cphone" placeholder="070…" type="tel">
+    <label>E-post</label>
+    <input id="cmail" placeholder="du@pizzerian.se" type="email">
+    <label>Länk till meny / sajt (valfritt)</label>
+    <input id="cweb" placeholder="https://">
+    <label class="check"><input type="checkbox" id="cboost"> Jag vill synas högre</label>
+    <button class="go" onclick="sendClaim()">Skicka claim</button>
+  </div>
+</div>
 <script>
 const URL="https://cmmnqckszwgsvaaawouw.supabase.co";
 const KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNtbW5xY2tzendnc3ZhYWF3b3V3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc1MDM3OTcsImV4cCI6MjEwMzA3OTc5N30.3q6gLw1Zz2ql__Va29fYPwjCkdnJ9-cO1MmKmluF30g";
 let all=[], filter="all";
 async function page(off){
-  const r=await fetch(URL+"/rest/v1/pizzerias?select=*&order=rating.desc&limit=1000&offset="+off,{
+  const r=await fetch(URL+"/rest/v1/pizzerias?select=*&order=is_sponsored.desc,rating.desc&limit=1000&offset="+off,{
     headers:{apikey:KEY,Authorization:"Bearer "+KEY,Prefer:"count=exact"}
   });
   if(!r.ok) throw new Error(await r.text());
-  const rows=await r.json();
-  const range=r.headers.get("content-range")||"";
-  const total=parseInt((range.split("/")[1]||rows.length),10);
-  return {rows,total};
+  return {rows:await r.json(), total:parseInt(((r.headers.get("content-range")||"").split("/")[1]||"0"),10)};
 }
 async function load(){
   try{
-    all=[];
-    let off=0, total=Infinity;
-    while(off<total){
-      const p=await page(off);
-      all=all.concat(p.rows);
-      total=p.total; off+=1000;
-    }
+    all=[]; let off=0,total=Infinity;
+    while(off<total){const p=await page(off); all=all.concat(p.rows); total=p.total||all.length; off+=1000;}
     document.getElementById("sub").textContent=all.length+" pizzerior · live";
     render();
   }catch(e){
@@ -81,11 +104,7 @@ async function load(){
     document.getElementById("list").innerHTML="<div class='empty'>Fel: "+e.message+"</div>";
   }
 }
-function setF(f){
-  filter=f;
-  document.querySelectorAll(".chip").forEach(c=>c.classList.toggle("on",c.dataset.f===f));
-  render();
-}
+function setF(f){filter=f;document.querySelectorAll(".chip").forEach(c=>c.classList.toggle("on",c.dataset.f===f));render();}
 function getList(){
   const q=document.getElementById("q").value.toLowerCase().trim();
   return all.filter(p=>{
@@ -94,12 +113,12 @@ function getList(){
     if(filter==="spon"&&!p.is_sponsored) return false;
     if(!q) return true;
     return (p.name+" "+p.city+" "+(p.country||"")).toLowerCase().includes(q);
-  }).sort((a,b)=>(b.is_sponsored-a.is_sponsored)||((b.rating||0)-(a.rating||0)));
+  });
 }
 function render(){
   const list=getList();
   document.getElementById("count").innerHTML="Visar <b style='color:var(--text)'>"+list.length+"</b>";
-  if(!list.length){document.getElementById("list").innerHTML="<div class='empty'>🍕<br>Inga pizzerior hittades</div>";return;}
+  if(!list.length){document.getElementById("list").innerHTML="<div class='empty'>🍕<br>Inga pizzerior</div>";return;}
   document.getElementById("list").innerHTML=list.slice(0,200).map(p=>`
     <article class="card">
       <h2>${p.name}</h2>
@@ -115,16 +134,47 @@ function render(){
         ${p.phone?`<a class="ring" href="tel:${p.phone}">📞 Ring</a>`:"<a class='ring off'>📞</a>"}
         ${p.lat?`<a class="map" target="_blank" href="https://maps.apple.com/?daddr=${p.lat},${p.lon}">📍 Karta</a>`:"<a class='map off'>📍</a>"}
         ${p.menu_url?`<a class="meny" target="_blank" rel="noopener" href="${p.menu_url}">🔗 Sajt</a>`:"<a class='meny off'>🔗</a>"}
+        <button class="claim" onclick='openClaim(${JSON.stringify(p.id)},${JSON.stringify(p.name)})'>Äg</button>
       </div>
-    </article>`).join("")+(list.length>200?"<p class='empty'>Visar första 200 träffarna. Sök för att begränsa.</p>":"");
+    </article>`).join("")+(list.length>200?"<p class='empty'>Visar 200. Sök för att begränsa.</p>":"");
 }
 function slumpa(){
-  const list=getList();
-  if(!list.length) return alert("Inget att slumpa");
+  const list=getList(); if(!list.length) return;
   const p=list[Math.floor(Math.random()*list.length)];
-  document.getElementById("q").value=p.name;
-  render();
+  document.getElementById("q").value=p.name; render();
   alert("🎲 "+p.name+" · "+p.city);
+}
+function openClaim(id,name){
+  document.getElementById("pid").value=id;
+  document.getElementById("stitle").textContent="Äg "+name;
+  document.getElementById("sdesc").textContent="Ni syns redan. Ta över sidan gratis. Bocka i om ni vill synas högre.";
+  document.getElementById("mask").classList.add("on");
+}
+function openInfo(){
+  document.getElementById("pid").value="";
+  document.getElementById("stitle").textContent="Äg din pizzeria";
+  document.getElementById("sdesc").textContent="Sök upp er i listan eller fyll i här. Gratis claim. Syns högre är tillval.";
+  document.getElementById("mask").classList.add("on");
+}
+function closeSheet(){document.getElementById("mask").classList.remove("on");}
+async function sendClaim(){
+  const name=document.getElementById("cname").value.trim();
+  const phone=document.getElementById("cphone").value.trim();
+  const email=document.getElementById("cmail").value.trim();
+  const web=document.getElementById("cweb").value.trim();
+  const boost=document.getElementById("cboost").checked;
+  const pid=document.getElementById("pid").value||null;
+  if(!name||!phone){alert("Namn och telefon behövs");return;}
+  const note=JSON.stringify({name,phone,email,web,boost,when:new Date().toISOString()});
+  const body={pizzeria_id:pid,proof_note:note,status:"pending"};
+  const r=await fetch(URL+"/rest/v1/claims",{
+    method:"POST",
+    headers:{apikey:KEY,Authorization:"Bearer "+KEY,"Content-Type":"application/json",Prefer:"return=minimal"},
+    body:JSON.stringify(body)
+  });
+  if(!r.ok){alert("Kunde inte skicka: "+await r.text());return;}
+  closeSheet();
+  alert(boost?"Tack. Claim + önskan om Syns högre är inne.":"Tack. Vi granskar din claim.");
 }
 load();
 </script>
