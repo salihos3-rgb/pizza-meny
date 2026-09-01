@@ -6,7 +6,7 @@
 <title>Pizza Meny</title>
 <meta name="theme-color" content="#c41e3a">
 <style>
-:root{--bg:#0e0e0f;--card:#1a1a1c;--text:#f2f2f2;--muted:#a8a8a8;--line:#2a2a2c;--red:#ff3b5c;--green:#30d158;--blue:#4da3ff}
+:root{--bg:#0e0e0f;--card:#1a1a1c;--text:#f2f2f2;--muted:#a8a8a8;--line:#2a2a2c;--red:#ff3b5c;--green:#30d158}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
 header{position:sticky;top:0;z-index:10;background:linear-gradient(90deg,#c41e3a,#a01830);padding:14px 16px;display:flex;justify-content:space-between;align-items:center}
@@ -16,7 +16,6 @@ header p{font-size:.75rem;opacity:.9}
 .wrap{padding:14px 16px 80px}
 input{width:100%;padding:13px 14px;border-radius:12px;border:1.5px solid var(--line);background:var(--card);color:var(--text);font-size:1rem;outline:none}
 .chips{display:flex;gap:8px;overflow-x:auto;padding:12px 0;scrollbar-width:none}
-.chips::-webkit-scrollbar{display:none}
 .chip{flex-shrink:0;padding:7px 12px;border-radius:20px;border:1px solid var(--line);background:var(--card);color:var(--muted);font-size:.82rem;font-weight:650}
 .chip.on{background:var(--red);border-color:var(--red);color:#fff}
 .count{font-size:.85rem;color:var(--muted);margin-bottom:10px}
@@ -45,7 +44,8 @@ input{width:100%;padding:13px 14px;border-radius:12px;border:1.5px solid var(--l
   <input id="q" type="search" placeholder="Sök pizzeria eller stad..." oninput="render()">
   <div class="chips">
     <button class="chip on" data-f="all" onclick="setF('all')">Alla</button>
-    <button class="chip" data-f="menu" onclick="setF('menu')">📋 Meny</button>
+    <button class="chip" data-f="menu" onclick="setF('menu')">📋 Meny / sajt</button>
+    <button class="chip" data-f="phone" onclick="setF('phone')">📞 Telefon</button>
     <button class="chip" data-f="spon" onclick="setF('spon')">Sponsrad</button>
   </div>
   <div class="count" id="count"></div>
@@ -55,13 +55,25 @@ input{width:100%;padding:13px 14px;border-radius:12px;border:1.5px solid var(--l
 const URL="https://cmmnqckszwgsvaaawouw.supabase.co";
 const KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNtbW5xY2tzendnc3ZhYWF3b3V3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc1MDM3OTcsImV4cCI6MjEwMzA3OTc5N30.3q6gLw1Zz2ql__Va29fYPwjCkdnJ9-cO1MmKmluF30g";
 let all=[], filter="all";
+async function page(off){
+  const r=await fetch(URL+"/rest/v1/pizzerias?select=*&order=rating.desc&limit=1000&offset="+off,{
+    headers:{apikey:KEY,Authorization:"Bearer "+KEY,Prefer:"count=exact"}
+  });
+  if(!r.ok) throw new Error(await r.text());
+  const rows=await r.json();
+  const range=r.headers.get("content-range")||"";
+  const total=parseInt((range.split("/")[1]||rows.length),10);
+  return {rows,total};
+}
 async function load(){
   try{
-    const r=await fetch(URL+"/rest/v1/pizzerias?select=*&order=rating.desc",{
-      headers:{apikey:KEY,Authorization:"Bearer "+KEY}
-    });
-    if(!r.ok) throw new Error(await r.text());
-    all=await r.json();
+    all=[];
+    let off=0, total=Infinity;
+    while(off<total){
+      const p=await page(off);
+      all=all.concat(p.rows);
+      total=p.total; off+=1000;
+    }
     document.getElementById("sub").textContent=all.length+" pizzerior · live";
     render();
   }catch(e){
@@ -78,6 +90,7 @@ function getList(){
   const q=document.getElementById("q").value.toLowerCase().trim();
   return all.filter(p=>{
     if(filter==="menu"&&!p.menu_url) return false;
+    if(filter==="phone"&&!p.phone) return false;
     if(filter==="spon"&&!p.is_sponsored) return false;
     if(!q) return true;
     return (p.name+" "+p.city+" "+(p.country||"")).toLowerCase().includes(q);
@@ -87,22 +100,23 @@ function render(){
   const list=getList();
   document.getElementById("count").innerHTML="Visar <b style='color:var(--text)'>"+list.length+"</b>";
   if(!list.length){document.getElementById("list").innerHTML="<div class='empty'>🍕<br>Inga pizzerior hittades</div>";return;}
-  document.getElementById("list").innerHTML=list.map(p=>`
+  document.getElementById("list").innerHTML=list.slice(0,200).map(p=>`
     <article class="card">
       <h2>${p.name}</h2>
       <div class="meta">
         <span>${p.city}, ${p.country||"Sverige"}</span>
         ${p.rating?`<span>⭐ ${p.rating}</span>`:""}
-        ${p.menu_url?"<span class='badge'>Meny</span>":""}
+        ${p.menu_url?"<span class='badge'>Sajt</span>":""}
+        ${p.phone?"<span class='badge'>Tel</span>":""}
         ${p.is_sponsored?"<span class='badge s'>Sponsrad</span>":""}
       </div>
       ${p.description?`<p class="desc">${p.description}</p>`:""}
       <div class="row">
         ${p.phone?`<a class="ring" href="tel:${p.phone}">📞 Ring</a>`:"<a class='ring off'>📞</a>"}
         ${p.lat?`<a class="map" target="_blank" href="https://maps.apple.com/?daddr=${p.lat},${p.lon}">📍 Karta</a>`:"<a class='map off'>📍</a>"}
-        ${p.menu_url?`<a class="meny" target="_blank" href="${p.menu_url}">📋 Meny</a>`:"<a class='meny off'>📋</a>"}
+        ${p.menu_url?`<a class="meny" target="_blank" rel="noopener" href="${p.menu_url}">🔗 Sajt</a>`:"<a class='meny off'>🔗</a>"}
       </div>
-    </article>`).join("");
+    </article>`).join("")+(list.length>200?"<p class='empty'>Visar första 200 träffarna. Sök för att begränsa.</p>":"");
 }
 function slumpa(){
   const list=getList();
