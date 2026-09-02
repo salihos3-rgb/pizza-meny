@@ -9,6 +9,7 @@
 <title>Pizza Meny</title>
 <meta name="theme-color" content="#c41e3a">
 <meta name="description" content="Hitta pizzeria, nummer och meny. En app. Hela Sverige.">
+<link rel="preconnect" href="https://cmmnqckszwgsvaaawouw.supabase.co" crossorigin>
 <style>
 :root{--bg:#0e0e0f;--card:#1a1a1c;--text:#f2f2f2;--muted:#a8a8a8;--line:#2a2a2c;--red:#ff3b5c;--green:#30d158}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -17,6 +18,7 @@ header{position:sticky;top:0;z-index:10;background:linear-gradient(90deg,#c41e3a
 h1{font-size:1.15rem;font-weight:800}
 header p{font-size:.72rem;opacity:.9}
 .iconbtn{background:rgba(255,255,255,.2);border:0;color:#fff;padding:8px 10px;border-radius:16px;font-weight:700;font-size:.78rem;margin-left:6px}
+.iconbtn.hot{background:#ffc400;color:#111}
 .wrap{padding:14px 16px 128px}
 .search{position:relative}
 .search input{width:100%;padding:13px 44px 13px 14px;border-radius:12px;border:1.5px solid var(--line);background:var(--card);color:var(--text);font-size:1rem}
@@ -69,24 +71,26 @@ header p{font-size:.72rem;opacity:.9}
 .door.shut{transform:scaleY(.08);transform-origin:bottom}
 .oven h2{margin:16px 0 6px}
 .oven p{color:var(--muted)}
+body{background:radial-gradient(1200px 500px at 50% -10%,#3a1520 0%,var(--bg) 55%)}
+.glow{box-shadow:0 0 0 2px #ffc400}
 </style>
 </head>
 <body>
 <header>
   <div style="display:flex;align-items:center">
     <button class="back" id="back" style="display:none" onclick="goList()">‹</button>
-    <div><h1 id="htitle">🍕 Pizza Meny</h1><p id="sub">Laddar...</p></div>
+    <div><h1 id="htitle">🍕 Pizza Meny</h1><p id="sub">Nummer. Meny. Klart.</p></div>
   </div>
   <div>
     <button class="iconbtn" onclick="openHelp()">?</button>
-    <button class="iconbtn" onclick="openDuel()">2</button>
-    <button class="iconbtn" onclick="openSlump()">🎲</button>
+    <button class="iconbtn" onclick="openDuel()">Tvåan</button>
+    <button class="iconbtn hot" onclick="openSlump()">Slumpa</button>
   </div>
 </header>
 <div class="page on" id="listPage">
 <div class="wrap">
   <div class="search">
-    <input id="q" type="search" placeholder="Sök pizzeria eller stad..." oninput="onType()" onchange="rememberQ()">
+    <input id="q" type="search" placeholder="Skriv stad eller namn..." oninput="onType()" onchange="rememberQ()" enterkeyhint="search">
     <button class="clear" id="clr" onclick="wipe()">✕</button>
   </div>
   <div class="chips" id="recent"></div>
@@ -111,7 +115,7 @@ header p{font-size:.72rem;opacity:.9}
 <div class="page" id="detailPage"><div class="wrap" id="detail"></div></div>
 <div class="owner" id="ownerbar">
   <button onclick="openTip('saknas')">Saknas?</button>
-  <a href="#" onclick="alert('Öppna pizzerian och tryck Äg.');return false;">Äg din sida</a>
+  <button onclick="openHelp()">Äg din sida</button>
 </div><div class="mask" id="mask">
   <div class="sheet">
     <button class="x" onclick="closeSheet()">✕</button>
@@ -144,12 +148,12 @@ header p{font-size:.72rem;opacity:.9}
   <div class="sheet">
     <button class="x" onclick="document.getElementById('slumpMask').classList.remove('on')">✕</button>
     <h3>Slumpa</h3>
-    <p>Klassiskt: ett tryck, en pizzeria. Eller in i ugnen.</p>
-    <button class="go" onclick="doSlump('any')">Valfri</button>
-    <button class="go" style="background:#2a2a2c" onclick="doSlump('city')">I vald stad</button>
-    <button class="go" style="background:#2a2a2c" onclick="doSlump('fav')">Favoriter</button>
+    <p>Du slipper välja. Vi pekar. Du ringer.</p>
+    <button class="go" onclick="doSlump('any')">Valfri i Sverige</button>
+    <button class="go" style="background:#2a2a2c" onclick="doSlump('city')">Här i staden</button>
+    <button class="go" style="background:#2a2a2c" onclick="doSlump('fav')">Mina favoriter</button>
     <button class="go" style="background:#2a2a2c" onclick="doSlump('menu')">Bara med sajt</button>
-    <button class="go" style="background:#2a2a2c" onclick="doSlump('items')">Bara med digital meny</button>
+    <button class="go" style="background:#2a2a2c" onclick="doSlump('items')">Bara med meny</button>
     <button class="go" style="background:#ffc400;color:#111;margin-top:16px" onclick="ovenStart()">In i ugnen</button>
   </div>
 </div>
@@ -157,7 +161,7 @@ header p{font-size:.72rem;opacity:.9}
   <div class="sheet">
     <button class="x" onclick="document.getElementById('duelMask').classList.remove('on')">✕</button>
     <h3>Tvåan</h3>
-    <p>Två i taget. Tryck den du vill ha. Andra byts ut.</p>
+    <p>Den här eller den. Tryck. Klart.</p>
     <div class="duel">
       <button class="pick" id="d1" onclick="duelPick(0)"></button>
       <button class="pick" id="d2" onclick="duelPick(1)"></button>
@@ -169,11 +173,11 @@ header p{font-size:.72rem;opacity:.9}
 <div class="mask" id="helpMask">
   <div class="sheet">
     <button class="x" onclick="document.getElementById('helpMask').classList.remove('on')">✕</button>
-    <h3>Så funkar Pizza Meny</h3>
-    <p>Sök stad eller namn. Ring, karta och sajt i ett tryck.</p>
-    <p>❤️ favorit · ★ ditt betyg · 🎲 slumpa · 2 = tvåan</p>
-    <p><span class="price">Syns högre = 299 kr/mån</span> för pizzerior som äger sin sida. Villkor skickas när ni tecknar.</p>
-    <p>Lägg till på hemskärmen: Dela → Lägg till på hemskärm.</p>
+    <h3>Hungrig?</h3>
+    <p>Skriv staden. Tryck pizzerian. Ring.</p>
+    <p><b>Slumpa</b> om du inte vet. <b>Tvåan</b> om du vill välja snabbt. Hjärtat sparar.</p>
+    <p>Pizzeria: öppna kortet → Äg. <span class="price">299 kr/mån</span> för att ligga överst. Villkor när ni tecknar.</p>
+    <p>Hemskärm: Dela → Lägg till på hemskärm. Då är det en app.</p>
     <button class="go" onclick="openContact()">Kontakt</button>
     <button class="go" style="background:#2a2a2c" onclick="document.getElementById('helpMask').classList.remove('on')">Stäng</button>
   </div>
@@ -193,12 +197,12 @@ header p{font-size:.72rem;opacity:.9}
 <div class="ovenwrap" id="oven">
   <div class="oven">
     <div class="door" id="door">🔥</div>
-    <h2 id="ovenTitle">Ugnen värms</h2>
-    <p id="ovenSub">Ett ögonblick</p>
+    <h2 id="ovenTitle">Ugnen är het</h2>
+    <p id="ovenSub">En sekund</p>
     <div id="ovenActs" style="display:none;margin-top:14px">
       <button class="go" id="ovenRing">Ring</button>
       <button class="go" style="background:#2a2a2c" onclick="ovenAgain()">En gång till</button>
-      <button class="go" style="background:#2a2a2c" onclick="ovenClose()">Stäng</button>
+      <button class="go" style="background:#2a2a2c" onclick="ovenClose()">Öppna</button>
     </div>
   </div>
 </div>
@@ -207,7 +211,8 @@ const URL="https://cmmnqckszwgsvaaawouw.supabase.co";
 const KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNtbW5xY2tzendnc3ZhYWF3b3V3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc1MDM3OTcsImV4cCI6MjEwMzA3OTc5N30.3q6gLw1Zz2ql__Va29fYPwjCkdnJ9-cO1MmKmluF30g";
 const TOP=["Stockholm","Göteborg","Malmö","Uppsala","Västerås","Örebro","Linköping","Helsingborg","Norrköping","Jönköping","Lund","Umeå","Eskilstuna"];
 const LEAK=["København","Kobenhavn","Copenhagen","Oslo","Helsinki","Vaasa"];
-let all=[], items=[], filter="all", sort="rank", city="", me=null, duel=[null,null], duelWin=0, ovenP=null, formOpen=0;
+const COLS="id,name,city,country,phone,lat,lon,menu_url,description,rating,is_sponsored";
+let all=[], items=[], filter="all", sort="rank", city="", me=null, duel=[null,null], duelWin=0, ovenP=null, formOpen=0, typeT=0;
 function favs(){try{return JSON.parse(localStorage.getItem("pm_fav")||"[]")}catch(e){return[]}}
 function saveFav(a){localStorage.setItem("pm_fav",JSON.stringify(a))}
 function isFav(id){return favs().includes(id)}
@@ -237,31 +242,74 @@ function okCity(p){
   if((p.country||"Sverige")!=="Sverige" && (p.country||"")!=="Sweden") return false;
   return true;
 }
+function clean(rows){
+  const seen=new Set();
+  return rows.filter(p=>p&&p.id&&!seen.has(p.id)&&(seen.add(p.id),okCity(p)));
+}
+function paint(msg){
+  document.getElementById("sub").textContent=msg||(all.length+" pizzerior · live");
+  drawCities();drawRecent();render();
+}
+function readCache(){
+  try{
+    const c=JSON.parse(localStorage.getItem("pm_cache")||"null");
+    if(!c||!Array.isArray(c.rows)||!c.rows.length) return null;
+    if(Date.now()-(c.t||0)>1000*60*60*12) return c;
+    return c;
+  }catch(e){return null}
+}
+function writeCache(){try{localStorage.setItem("pm_cache",JSON.stringify({t:Date.now(),rows:all}))}catch(e){}}
 async function page(off){
-  const r=await fetch(URL+"/rest/v1/pizzerias?select=*&order=id.asc&limit=1000&offset="+off,{headers:{apikey:KEY,Authorization:"Bearer "+KEY,Prefer:"count=exact"}});
+  const r=await fetch(URL+"/rest/v1/pizzerias?select="+COLS+"&order=id.asc&limit=1000&offset="+off,{headers:{apikey:KEY,Authorization:"Bearer "+KEY,Prefer:"count=exact"}});
   if(!r.ok) throw new Error(await r.text());
   return {rows:await r.json(),total:parseInt(((r.headers.get("content-range")||"").split("/")[1]||"0"),10)};
 }
-async function load(){
+async function loadItems(){
   try{
-    all=[];let off=0,total=Infinity;
-    while(off<total){const p=await page(off);all=all.concat(p.rows);total=p.total||all.length;off+=1000}
-    const seen=new Set();
-    all=all.filter(p=>seen.has(p.id)?false:(seen.add(p.id),true)).filter(okCity);
     const ir=await fetch(URL+"/rest/v1/pizza_items?select=pizzeria_id,name,price_sek",{headers:{apikey:KEY,Authorization:"Bearer "+KEY}});
     items=ir.ok?await ir.json():[];
-    document.getElementById("sub").textContent=all.length+" pizzerior · live";
-    drawCities();drawRecent();render();
-  }catch(e){document.getElementById("sub").textContent="Fel";document.getElementById("list").innerHTML="<div class='empty'>"+e.message+"</div>"}
+  }catch(e){items=[]}
+}
+async function load(){
+  city=localStorage.getItem("pm_city")||"";
+  if(city) document.getElementById("q").value=city;
+  const cached=readCache();
+  if(cached){all=clean(cached.rows);paint(all.length+" pizzerior");}
+  try{
+    const first=await page(0);
+    all=clean(first.rows);
+    paint(all.length+" pizzerior · live");
+    loadItems();
+    let off=1000,total=first.total||all.length;
+    while(off<total){
+      const p=await page(off);
+      all=clean(all.concat(p.rows));
+      total=p.total||total;
+      off+=1000;
+    }
+    writeCache();
+    paint(all.length+" pizzerior · live");
+  }catch(e){
+    if(!all.length){document.getElementById("sub").textContent="Fel";document.getElementById("list").innerHTML="<div class='empty'>"+e.message+"</div>"}
+  }
 }
 function drawCities(){
   document.getElementById("cities").innerHTML=`<button class="city ${!city?"on":""}" onclick="setCity('')">Alla städer</button>`+TOP.map(c=>`<button class="city ${city===c?"on":""}" onclick="setCity('${c}')">${c}</button>`).join("");
 }
-function setCity(c){city=c;document.getElementById("q").value=c||"";if(c)rememberQ();syncClear();drawCities();render()}
+function setCity(c){city=c;document.getElementById("q").value=c||"";localStorage.setItem("pm_city",c||"");if(c)rememberQ();syncClear();drawCities();render()}
 function setF(f){filter=f;document.querySelectorAll("[data-f]").forEach(c=>c.classList.toggle("on",c.dataset.f===f));if(f==="near"&&!me)askNear();render()}
 function setS(s){sort=s;document.querySelectorAll("[data-s]").forEach(c=>c.classList.toggle("on",c.dataset.s===s));render()}
-function onType(){const v=document.getElementById("q").value.trim();city=TOP.find(c=>c.toLowerCase()===v.toLowerCase())||"";syncClear();drawCities();render()}
-function wipe(){document.getElementById("q").value="";city="";syncClear();drawCities();render();document.getElementById("q").focus()}
+function onType(){
+  syncClear();
+  clearTimeout(typeT);
+  typeT=setTimeout(()=>{
+    const v=document.getElementById("q").value.trim();
+    city=TOP.find(c=>c.toLowerCase()===v.toLowerCase())||"";
+    if(city) localStorage.setItem("pm_city",city);
+    drawCities();render();
+  },80);
+}
+function wipe(){document.getElementById("q").value="";city="";localStorage.removeItem("pm_city");syncClear();drawCities();render();document.getElementById("q").focus()}
 function syncClear(){document.getElementById("clr").classList.toggle("on",!!(document.getElementById("q").value||city))}
 function menuOf(id){return items.filter(x=>x.pizzeria_id===id)}function getList(){
   const q=document.getElementById("q").value.toLowerCase().trim();
@@ -295,9 +343,9 @@ function cardHtml(p,full){
     ${full?`<div class="stars">${[1,2,3,4,5].map(n=>`<span onclick="setRate('${p.id}',${n})">${n<=my?"★":"☆"}</span>`).join("")}</div>`:""}
     ${full&&p.description?`<p class="desc">${p.description}</p>`:""}
     <div class="row">
-      ${p.phone?`<a class="ring" href="tel:${p.phone}">📞 Ring</a>`:"<a class='ring off'>📞</a>"}
-      ${p.lat?`<a class="map" target="_blank" href="https://maps.apple.com/?daddr=${p.lat},${p.lon}">📍 Karta</a>`:"<a class='map off'>📍</a>"}
-      ${p.menu_url?`<a class="meny" target="_blank" href="${p.menu_url}">🔗 Sajt</a>`:"<a class='meny off'>🔗</a>"}
+      ${p.phone?`<a class="ring" href="tel:${p.phone}">📞 Ring</a>`:""}
+      ${p.lat?`<a class="map" target="_blank" href="https://maps.apple.com/?daddr=${p.lat},${p.lon}">📍 Karta</a>`:""}
+      ${p.menu_url?`<a class="meny" target="_blank" href="${p.menu_url}">🔗 Sajt</a>`:""}
       <button class="act claim" onclick='openClaim(${JSON.stringify(p.id)},${JSON.stringify(p.name)},${JSON.stringify(p.phone||"")})'>Äg</button>
     </div>
     ${full?`<button class="act claim" style="width:100%;margin-top:8px" onclick='openTip("syns_hogre",${JSON.stringify(p.id)},${JSON.stringify(p.name)},${JSON.stringify(p.city||"")})'>Syns högre · 299 kr/mån</button>
@@ -306,15 +354,15 @@ function cardHtml(p,full){
   </article>`;
 }
 function shareP(name,cty){
-  const t=name+(cty?" · "+cty:"")+" på Pizza Meny";
+  const t="Ikväll: "+name+(cty?" i "+cty:"")+" — Pizza Meny";
   const u="https://pizza-meny.vercel.app";
   if(navigator.share) navigator.share({title:t,text:t,url:u}); else {navigator.clipboard.writeText(u+" — "+t);alert("Länk kopierad");}
 }
 function render(){
   const list=getList();
   const cap=(city||document.getElementById("q").value.trim()||filter==="fav"||filter==="near")?800:80;
-  document.getElementById("count").innerHTML="Visar <b style='color:#fff'>"+Math.min(list.length,cap)+"</b> av "+list.length;
-  document.getElementById("list").innerHTML=list.length?list.slice(0,cap).map(p=>cardHtml(p,false)).join(""):"<div class='empty'>Inget här. Tryck Saknas?</div>";
+  document.getElementById("count").innerHTML=(!city&&filter==="all"?"Välj stad ovan — eller Slumpa. ":"")+"Visar <b style='color:#fff'>"+Math.min(list.length,cap)+"</b> av "+list.length;
+  document.getElementById("list").innerHTML=list.length?list.slice(0,cap).map(p=>cardHtml(p,false)).join(""):"<div class='empty'>"+(filter==="fav"?"Inga favoriter än. Tryck hjärtat på en pizzeria.":"Inget här. Tryck Saknas?")+"</div>";
 }
 function openDetail(id){
   const p=all.find(x=>x.id===id);if(!p)return;
@@ -347,8 +395,9 @@ function pickPool(mode){
 }
 function doSlump(mode){
   document.getElementById("slumpMask").classList.remove("on");
+  if(mode==="city"&&!city){alert("Välj en stad först.");return}
   const pool=pickPool(mode);
-  if(!pool.length){alert("Inget att slumpa");return}
+  if(!pool.length){alert("Inget att slumpa där.");return}
   const p=pool[Math.floor(Math.random()*pool.length)];
   openDetail(p.id);
   if(menuOf(p.id).length) slumpPizza(p.id);
@@ -367,7 +416,7 @@ function ovenStart(){
   const door=document.getElementById("door");
   document.getElementById("ovenActs").style.display="none";
   document.getElementById("ovenTitle").textContent="Luckan stängs";
-  document.getElementById("ovenSub").textContent="Vi bakar fram en";
+  document.getElementById("ovenSub").textContent="En pizza åt dig";
   document.getElementById("oven").classList.add("on");
   door.classList.add("shut");
   setTimeout(()=>{
@@ -378,8 +427,8 @@ function ovenStart(){
     document.getElementById("ovenSub").textContent=extra;
     document.getElementById("ovenActs").style.display="block";
     const ring=document.getElementById("ovenRing");
-    if(ovenP.phone){ring.className="go";ring.onclick=()=>location.href="tel:"+ovenP.phone;ring.textContent="Ring"}
-    else {ring.className="go";ring.style.background="#2a2a2c";ring.onclick=()=>openDetail(ovenP.id);ring.textContent="Öppna"}
+    if(ovenP.phone){ring.style.display="block";ring.className="go";ring.onclick=()=>{location.href="tel:"+ovenP.phone};ring.textContent="Ring"}
+    else {ring.style.display="none"}
   },700);
 }
 function ovenAgain(){document.getElementById("oven").classList.remove("on");ovenStart()}
