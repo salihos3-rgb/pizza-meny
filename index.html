@@ -44,7 +44,7 @@ header p{font-size:.72rem;opacity:.9}
 .back{background:0;border:0;color:#fff;font-size:1.4rem;margin-right:8px}
 .mask{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:40;display:none;align-items:flex-end}
 .mask.on{display:flex}
-.sheet{background:#161618;width:100%;border-radius:20px 20px 0 0;padding:18px 16px 28px;max-height:88vh;overflow:auto}
+.sheet{background:#161618;width:100%;border-radius:20px 20px 0 0;padding:18px 16px 28px;max-height:90vh;overflow:auto}
 .sheet h3{margin-bottom:6px}
 .sheet p{color:var(--muted);font-size:.88rem;margin-bottom:10px}
 .sheet label{display:block;font-size:.78rem;color:var(--muted);margin:10px 0 4px}
@@ -58,6 +58,17 @@ header p{font-size:.72rem;opacity:.9}
 .stars{letter-spacing:3px;font-size:1.2rem;margin:8px 0}
 .item{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line);font-size:.9rem}
 .price{color:#ffc400;font-weight:800}
+.hp{position:absolute;left:-9999px;height:0;width:0;opacity:0}
+.duel{display:flex;gap:10px;margin-top:8px}
+.duel .pick{flex:1;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px 10px;color:#fff;text-align:center;min-height:140px}
+.duel .pick b{display:block;font-size:1.05rem;margin-bottom:6px}
+.ovenwrap{position:fixed;inset:0;z-index:50;display:none;align-items:center;justify-content:center;background:#0a0a0b}
+.ovenwrap.on{display:flex}
+.oven{width:min(340px,88vw);text-align:center}
+.door{height:180px;border-radius:16px;background:linear-gradient(#2a1518,#12090a);border:3px solid #5a2a22;display:flex;align-items:center;justify-content:center;font-size:3rem;transition:transform .45s}
+.door.shut{transform:scaleY(.08);transform-origin:bottom}
+.oven h2{margin:16px 0 6px}
+.oven p{color:var(--muted)}
 </style>
 </head>
 <body>
@@ -68,6 +79,7 @@ header p{font-size:.72rem;opacity:.9}
   </div>
   <div>
     <button class="iconbtn" onclick="openHelp()">?</button>
+    <button class="iconbtn" onclick="openDuel()">2</button>
     <button class="iconbtn" onclick="openSlump()">🎲</button>
   </div>
 </header>
@@ -109,7 +121,7 @@ header p{font-size:.72rem;opacity:.9}
     <label>Telefon</label><input id="cphone" type="tel">
     <label>E-post</label><input id="cmail" type="email">
     <label>Sajt</label><input id="cweb" placeholder="https://">
-    <label class="check"><input type="checkbox" id="cboost"> Syns högre · 299 kr/mån</label>
+    <label class="check"><input type="checkbox" id="cboost"> Jag vill synas högre · 299 kr/mån</label>
     <button class="go" onclick="sendClaim()">Skicka</button>
   </div>
 </div>
@@ -132,12 +144,26 @@ header p{font-size:.72rem;opacity:.9}
   <div class="sheet">
     <button class="x" onclick="document.getElementById('slumpMask').classList.remove('on')">✕</button>
     <h3>Slumpa</h3>
-    <p>Pizzeria först. Pizza om digital meny finns.</p>
+    <p>Klassiskt: ett tryck, en pizzeria. Eller in i ugnen.</p>
     <button class="go" onclick="doSlump('any')">Valfri</button>
     <button class="go" style="background:#2a2a2c" onclick="doSlump('city')">I vald stad</button>
     <button class="go" style="background:#2a2a2c" onclick="doSlump('fav')">Favoriter</button>
     <button class="go" style="background:#2a2a2c" onclick="doSlump('menu')">Bara med sajt</button>
     <button class="go" style="background:#2a2a2c" onclick="doSlump('items')">Bara med digital meny</button>
+    <button class="go" style="background:#ffc400;color:#111;margin-top:16px" onclick="ovenStart()">In i ugnen</button>
+  </div>
+</div>
+<div class="mask" id="duelMask">
+  <div class="sheet">
+    <button class="x" onclick="document.getElementById('duelMask').classList.remove('on')">✕</button>
+    <h3>Tvåan</h3>
+    <p>Två i taget. Tryck den du vill ha. Andra byts ut.</p>
+    <div class="duel">
+      <button class="pick" id="d1" onclick="duelPick(0)"></button>
+      <button class="pick" id="d2" onclick="duelPick(1)"></button>
+    </div>
+    <button class="go" onclick="duelKeep()">Det blir den här</button>
+    <button class="go" style="background:#2a2a2c" onclick="duelNew()">Nytt par</button>
   </div>
 </div>
 <div class="mask" id="helpMask">
@@ -145,18 +171,43 @@ header p{font-size:.72rem;opacity:.9}
     <button class="x" onclick="document.getElementById('helpMask').classList.remove('on')">✕</button>
     <h3>Så funkar Pizza Meny</h3>
     <p>Sök stad eller namn. Ring, karta och sajt i ett tryck.</p>
-    <p>❤️ = favorit på din telefon. ★ = ditt betyg.</p>
-    <p>🎲 slumpar pizzeria — och pizza om meny finns.</p>
-    <p><span class="price">Syns högre = 299 kr/mån.</span> Pizzerian äger sin sida först. Inget dras förrän vi sagt ja.</p>
+    <p>❤️ favorit · ★ ditt betyg · 🎲 slumpa · 2 = tvåan</p>
+    <p><span class="price">Syns högre = 299 kr/mån</span> för pizzerior som äger sin sida. Villkor skickas när ni tecknar.</p>
     <p>Lägg till på hemskärmen: Dela → Lägg till på hemskärm.</p>
-    <button class="go" onclick="document.getElementById('helpMask').classList.remove('on')">Stäng</button>
+    <button class="go" onclick="openContact()">Kontakt</button>
+    <button class="go" style="background:#2a2a2c" onclick="document.getElementById('helpMask').classList.remove('on')">Stäng</button>
+  </div>
+</div>
+<div class="mask" id="contactMask">
+  <div class="sheet">
+    <button class="x" onclick="document.getElementById('contactMask').classList.remove('on')">✕</button>
+    <h3>Kontakt</h3>
+    <p>Pizzeria, press eller fel i listan.</p>
+    <input class="hp" id="hp" tabindex="-1" autocomplete="off">
+    <label>Namn</label><input id="kname">
+    <label>E-post</label><input id="kmail" type="email">
+    <label>Meddelande</label><textarea id="kmsg"></textarea>
+    <button class="go" onclick="sendContact()">Skicka</button>
+  </div>
+</div>
+<div class="ovenwrap" id="oven">
+  <div class="oven">
+    <div class="door" id="door">🔥</div>
+    <h2 id="ovenTitle">Ugnen värms</h2>
+    <p id="ovenSub">Ett ögonblick</p>
+    <div id="ovenActs" style="display:none;margin-top:14px">
+      <button class="go" id="ovenRing">Ring</button>
+      <button class="go" style="background:#2a2a2c" onclick="ovenAgain()">En gång till</button>
+      <button class="go" style="background:#2a2a2c" onclick="ovenClose()">Stäng</button>
+    </div>
   </div>
 </div>
 <script>
 const URL="https://cmmnqckszwgsvaaawouw.supabase.co";
 const KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNtbW5xY2tzendnc3ZhYWF3b3V3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc1MDM3OTcsImV4cCI6MjEwMzA3OTc5N30.3q6gLw1Zz2ql__Va29fYPwjCkdnJ9-cO1MmKmluF30g";
 const TOP=["Stockholm","Göteborg","Malmö","Uppsala","Västerås","Örebro","Linköping","Helsingborg","Norrköping","Jönköping","Lund","Umeå","Eskilstuna"];
-let all=[], items=[], filter="all", sort="rank", city="", me=null;
+const LEAK=["København","Kobenhavn","Copenhagen","Oslo","Helsinki","Vaasa"];
+let all=[], items=[], filter="all", sort="rank", city="", me=null, duel=[null,null], duelWin=0, ovenP=null, formOpen=0;
 function favs(){try{return JSON.parse(localStorage.getItem("pm_fav")||"[]")}catch(e){return[]}}
 function saveFav(a){localStorage.setItem("pm_fav",JSON.stringify(a))}
 function isFav(id){return favs().includes(id)}
@@ -180,6 +231,12 @@ function askNear(){
   if(!navigator.geolocation){alert("Ingen GPS");return}
   navigator.geolocation.getCurrentPosition(p=>{me={lat:p.coords.latitude,lon:p.coords.longitude};render()},{enableHighAccuracy:true,timeout:8000});
 }
+function okCity(p){
+  const c=(p.city||"");
+  if(LEAK.some(x=>c.toLowerCase()===x.toLowerCase())) return false;
+  if((p.country||"Sverige")!=="Sverige" && (p.country||"")!=="Sweden") return false;
+  return true;
+}
 async function page(off){
   const r=await fetch(URL+"/rest/v1/pizzerias?select=*&order=id.asc&limit=1000&offset="+off,{headers:{apikey:KEY,Authorization:"Bearer "+KEY,Prefer:"count=exact"}});
   if(!r.ok) throw new Error(await r.text());
@@ -190,7 +247,7 @@ async function load(){
     all=[];let off=0,total=Infinity;
     while(off<total){const p=await page(off);all=all.concat(p.rows);total=p.total||all.length;off+=1000}
     const seen=new Set();
-    all=all.filter(p=>seen.has(p.id)?false:(seen.add(p.id),true));
+    all=all.filter(p=>seen.has(p.id)?false:(seen.add(p.id),true)).filter(okCity);
     const ir=await fetch(URL+"/rest/v1/pizza_items?select=pizzeria_id,name,price_sek",{headers:{apikey:KEY,Authorization:"Bearer "+KEY}});
     items=ir.ok?await ir.json():[];
     document.getElementById("sub").textContent=all.length+" pizzerior · live";
@@ -206,8 +263,7 @@ function setS(s){sort=s;document.querySelectorAll("[data-s]").forEach(c=>c.class
 function onType(){const v=document.getElementById("q").value.trim();city=TOP.find(c=>c.toLowerCase()===v.toLowerCase())||"";syncClear();drawCities();render()}
 function wipe(){document.getElementById("q").value="";city="";syncClear();drawCities();render();document.getElementById("q").focus()}
 function syncClear(){document.getElementById("clr").classList.toggle("on",!!(document.getElementById("q").value||city))}
-function menuOf(id){return items.filter(x=>x.pizzeria_id===id)}
-function getList(){
+function menuOf(id){return items.filter(x=>x.pizzeria_id===id)}function getList(){
   const q=document.getElementById("q").value.toLowerCase().trim();
   const cities=new Set(all.map(p=>(p.city||"").toLowerCase()).filter(Boolean));
   const exactCity=(city||"").toLowerCase() || (cities.has(q)?q:"");
@@ -281,13 +337,17 @@ function goList(){
 }
 function openSlump(){document.getElementById("slumpMask").classList.add("on")}
 function openHelp(){document.getElementById("helpMask").classList.add("on")}
-function doSlump(mode){
-  document.getElementById("slumpMask").classList.remove("on");
+function pickPool(mode){
   let pool=all;
   if(mode==="city") pool=getList();
   if(mode==="fav") pool=all.filter(p=>isFav(p.id));
   if(mode==="menu") pool=all.filter(p=>p.menu_url);
   if(mode==="items") pool=all.filter(p=>menuOf(p.id).length);
+  return pool;
+}
+function doSlump(mode){
+  document.getElementById("slumpMask").classList.remove("on");
+  const pool=pickPool(mode);
   if(!pool.length){alert("Inget att slumpa");return}
   const p=pool[Math.floor(Math.random()*pool.length)];
   openDetail(p.id);
@@ -299,12 +359,63 @@ function slumpPizza(id){
   const x=m[Math.floor(Math.random()*m.length)];
   alert("🍕 "+x.name+(x.price_sek?" · "+x.price_sek+" kr":""));
 }
+function ovenStart(){
+  document.getElementById("slumpMask").classList.remove("on");
+  const pool=getList().length?getList():all;
+  if(!pool.length){alert("Inget att slumpa");return}
+  ovenP=pool[Math.floor(Math.random()*pool.length)];
+  const door=document.getElementById("door");
+  document.getElementById("ovenActs").style.display="none";
+  document.getElementById("ovenTitle").textContent="Luckan stängs";
+  document.getElementById("ovenSub").textContent="Vi bakar fram en";
+  document.getElementById("oven").classList.add("on");
+  door.classList.add("shut");
+  setTimeout(()=>{
+    door.classList.remove("shut");
+    document.getElementById("ovenTitle").textContent=ovenP.name;
+    const pizza=menuOf(ovenP.id);
+    const extra=pizza.length?("🍕 "+pizza[Math.floor(Math.random()*pizza.length)].name): (ovenP.city||"");
+    document.getElementById("ovenSub").textContent=extra;
+    document.getElementById("ovenActs").style.display="block";
+    const ring=document.getElementById("ovenRing");
+    if(ovenP.phone){ring.className="go";ring.onclick=()=>location.href="tel:"+ovenP.phone;ring.textContent="Ring"}
+    else {ring.className="go";ring.style.background="#2a2a2c";ring.onclick=()=>openDetail(ovenP.id);ring.textContent="Öppna"}
+  },700);
+}
+function ovenAgain(){document.getElementById("oven").classList.remove("on");ovenStart()}
+function ovenClose(){document.getElementById("oven").classList.remove("on");if(ovenP)openDetail(ovenP.id)}
+function duelPool(){const l=getList();return l.length>=2?l:all}
+function duelNew(){
+  const pool=duelPool();
+  if(pool.length<2){alert("För få pizzerior");return}
+  let a=pool[Math.floor(Math.random()*pool.length)],b=a;
+  while(b.id===a.id) b=pool[Math.floor(Math.random()*pool.length)];
+  duel=[a,b]; duelWin=0; paintDuel();
+}
+function paintDuel(){
+  [0,1].forEach(i=>{
+    const p=duel[i]; if(!p) return;
+    document.getElementById("d"+(i+1)).innerHTML=`<b>${p.name}</b><span class="desc">${p.city||""}${p.is_sponsored?" · sponsrad":""}</span>`;
+    document.getElementById("d"+(i+1)).style.borderColor=duelWin===i?"#ffc400":"var(--line)";
+  });
+}
+function openDuel(){duelNew();document.getElementById("duelMask").classList.add("on")}
+function duelPick(i){
+  duelWin=i;
+  const pool=duelPool().filter(p=>p.id!==duel[i].id);
+  if(pool.length) duel[1-i]=pool[Math.floor(Math.random()*pool.length)];
+  paintDuel();
+}
+function duelKeep(){
+  document.getElementById("duelMask").classList.remove("on");
+  if(duel[duelWin]) openDetail(duel[duelWin].id);
+}
 function digits(s){s=(s||"").replace(/\D/g,"");if(s.startsWith("46")&&s.length>=10)s="0"+s.slice(2);return s}
 function openClaim(id,name,listed){
   document.getElementById("pid").value=id;
   document.getElementById("pid").dataset.listed=listed||"";
   document.getElementById("stitle").textContent="Äg "+name;
-  document.getElementById("sdesc").textContent=(listed?"Samma nummer som på kortet. ":"")+"Syns högre = 299 kr/mån. Inget dras förrän vi sagt ja.";
+  document.getElementById("sdesc").textContent=listed?"Samma nummer som på kortet.":"Pizzerians nummer. Villkor skickas om ni sen tecknar Syns högre.";
   document.getElementById("mask").classList.add("on");
 }
 function closeSheet(){document.getElementById("mask").classList.remove("on")}
@@ -316,9 +427,9 @@ async function sendClaim(){
   if(listed&&digits(listed)&&digits(phone)!==digits(listed)){alert("Numret måste matcha: "+listed);return}
   const pend=await fetch(URL+"/rest/v1/claims?select=id&pizzeria_id=eq."+pid+"&status=eq.pending",{headers:{apikey:KEY,Authorization:"Bearer "+KEY}});
   if(pend.ok&&(await pend.json()).length){alert("Redan en claim.");return}
-  const r=await fetch(URL+"/rest/v1/claims",{method:"POST",headers:{apikey:KEY,Authorization:"Bearer "+KEY,"Content-Type":"application/json",Prefer:"return=minimal"},body:JSON.stringify({pizzeria_id:pid,status:"pending",verification_method:boost?"syns_hogre":"phone",verification_data:JSON.stringify({name,phone,email,web,boost,price:"299"})})});
+  const r=await fetch(URL+"/rest/v1/claims",{method:"POST",headers:{apikey:KEY,Authorization:"Bearer "+KEY,"Content-Type":"application/json",Prefer:"return=minimal"},body:JSON.stringify({pizzeria_id:pid,status:"pending",verification_method:boost?"syns_hogre":"phone",verification_data:JSON.stringify({name,phone,email,web,boost,price:boost?"299":null})})});
   if(!r.ok){alert(await r.text());return}
-  closeSheet();alert(boost?"Tack. Claim + Syns högre 299 kr/mån. Vi hör av oss.":"Tack. Vi granskar.");
+  closeSheet();alert(boost?"Tack. Vi hör av oss om Syns högre.":"Tack. Vi granskar.");
 }
 function openTip(kind,pid,name,cty){
   document.getElementById("tipkind").value=kind;
@@ -329,7 +440,7 @@ function openTip(kind,pid,name,cty){
   document.getElementById("tweb").value="";
   document.getElementById("tnote").value=kind==="syns_hogre"?"Vill synas högre, 299 kr/mån":"";
   document.getElementById("tiptitle").textContent=kind==="syns_hogre"?"Syns högre · 299 kr/mån":"Saknas en pizzeria?";
-  document.getElementById("tipdesc").textContent=kind==="syns_hogre"?"Vi hör av oss. Inget dras förrän vi sagt ja.":"Vi lägger in efter koll mot egen sajt eller nummer.";
+  document.getElementById("tipdesc").textContent=kind==="syns_hogre"?"Intresseanmälan. Villkor kommer när ni tecknar.":"Vi lägger in efter koll mot egen sajt eller nummer.";
   document.getElementById("tipMask").classList.add("on");
 }
 async function sendTip(){
@@ -348,6 +459,36 @@ async function sendTip(){
   if(!r.ok){alert(await r.text());return}
   document.getElementById("tipMask").classList.remove("on");
   alert("Tack. Inskickat.");
+}
+function openContact(){
+  document.getElementById("helpMask").classList.remove("on");
+  formOpen=Date.now();
+  document.getElementById("kname").value="";
+  document.getElementById("kmail").value="";
+  document.getElementById("kmsg").value="";
+  document.getElementById("hp").value="";
+  document.getElementById("contactMask").classList.add("on");
+}
+async function sendContact(){
+  if(document.getElementById("hp").value) return;
+  if(Date.now()-formOpen<2500){alert("Vänta en sekund och skicka igen.");return}
+  const last=+localStorage.getItem("pm_mail")||0;
+  if(Date.now()-last<60000){alert("Vänta en minut mellan meddelanden.");return}
+  const name=document.getElementById("kname").value.trim();
+  const mail=document.getElementById("kmail").value.trim();
+  const msg=document.getElementById("kmsg").value.trim();
+  if(!name||!mail||!msg){alert("Namn, e-post och meddelande");return}
+  if(!mail.includes("@")||msg.length<8){alert("Kolla e-post och skriv lite mer.");return}
+  let body={kind:"kontakt",name,city:"Kontakt",phone:null,website:mail,note:msg};
+  let r=await fetch(URL+"/rest/v1/tips",{method:"POST",headers:{apikey:KEY,Authorization:"Bearer "+KEY,"Content-Type":"application/json",Prefer:"return=minimal"},body:JSON.stringify(body)});
+  if(!r.ok){
+    body.kind="saknas"; body.city="Kontakt"; body.note="KONTAKT "+mail+" | "+msg;
+    r=await fetch(URL+"/rest/v1/tips",{method:"POST",headers:{apikey:KEY,Authorization:"Bearer "+KEY,"Content-Type":"application/json",Prefer:"return=minimal"},body:JSON.stringify(body)});
+  }
+  if(!r.ok){alert(await r.text());return}
+  localStorage.setItem("pm_mail",String(Date.now()));
+  document.getElementById("contactMask").classList.remove("on");
+  alert("Tack. Vi läser det.");
 }
 load();
 </script>
