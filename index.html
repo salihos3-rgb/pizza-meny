@@ -13,15 +13,15 @@ header{position:sticky;top:0;z-index:10;background:linear-gradient(90deg,#c41e3a
 h1{font-size:1.15rem;font-weight:800}
 header p{font-size:.72rem;opacity:.9}
 .iconbtn{background:rgba(255,255,255,.2);border:0;color:#fff;padding:8px 12px;border-radius:16px;font-weight:700;font-size:.8rem}
-.wrap{padding:14px 16px 100px}
+.wrap{padding:14px 16px 120px}
 .search{position:relative}
 .search input{width:100%;padding:13px 44px 13px 14px;border-radius:12px;border:1.5px solid var(--line);background:var(--card);color:var(--text);font-size:1rem}
 .clear{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:32px;height:32px;border:0;border-radius:16px;background:#2a2a2c;color:#fff;display:none}
 .clear.on{display:block}
 .chips,.cities{display:flex;gap:8px;overflow-x:auto;padding:8px 0;scrollbar-width:none}
 .chip,.city{flex-shrink:0;padding:7px 12px;border-radius:20px;border:1px solid var(--line);background:var(--card);color:var(--muted);font-size:.8rem;font-weight:650}
-.chip.on{background:var(--red);border-color:var(--red);color:#fff}
-.city.on{background:#2a2a2c;border-color:#fff;color:#fff}
+.chip.on,.city.on{background:var(--red);border-color:var(--red);color:#fff}
+.city.on{background:#2a2a2c;border-color:#fff}
 .count{font-size:.85rem;color:var(--muted);margin:6px 0 10px}
 .card{background:var(--card);border-radius:16px;padding:14px;margin-bottom:12px;position:relative}
 .namebtn{background:0;border:0;color:inherit;font:inherit;text-align:left;width:calc(100% - 40px)}
@@ -44,12 +44,13 @@ header p{font-size:.72rem;opacity:.9}
 .sheet h3{margin-bottom:6px}
 .sheet p{color:var(--muted);font-size:.88rem;margin-bottom:10px}
 .sheet label{display:block;font-size:.78rem;color:var(--muted);margin:10px 0 4px}
-.sheet input{width:100%;padding:13px 14px;border-radius:12px;border:1.5px solid var(--line);background:var(--card);color:var(--text)}
+.sheet input,.sheet textarea{width:100%;padding:13px 14px;border-radius:12px;border:1.5px solid var(--line);background:var(--card);color:var(--text);font:inherit}
+.sheet textarea{min-height:72px}
 .sheet .go{width:100%;margin-top:10px;background:var(--red);border:0;color:#fff;padding:14px;border-radius:12px;font-weight:800}
 .sheet .x{float:right;background:0;border:0;color:var(--muted);font-size:1.2rem}
 .check{display:flex;gap:8px;align-items:center;margin-top:12px;color:var(--muted);font-size:.85rem}
-.owner{position:fixed;bottom:16px;left:16px;right:16px;z-index:20}
-.owner a{display:block;text-align:center;background:#1a1a1c;border:1px solid var(--line);color:var(--text);padding:12px;border-radius:14px;text-decoration:none;font-weight:700}
+.owner{position:fixed;bottom:16px;left:16px;right:16px;z-index:20;display:flex;gap:8px}
+.owner a,.owner button{flex:1;text-align:center;background:#1a1a1c;border:1px solid var(--line);color:var(--text);padding:12px 8px;border-radius:14px;text-decoration:none;font-weight:700;font-size:.82rem}
 .stars{letter-spacing:3px;font-size:1.2rem;margin:8px 0}
 .item{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line);font-size:.9rem}
 </style>
@@ -80,8 +81,10 @@ header p{font-size:.72rem;opacity:.9}
 </div>
 </div>
 <div class="page" id="detailPage"><div class="wrap" id="detail"></div></div>
-<div class="owner" id="ownerbar"><a href="#" onclick="alert('Sök upp pizzerian och tryck Äg.');return false;">Är du pizzeria? Äg din sida – gratis</a></div>
-<div class="mask" id="mask">
+<div class="owner" id="ownerbar">
+  <button onclick="openTip('saknas')">Saknas?</button>
+  <a href="#" onclick="alert('Öppna pizzerian och tryck Äg.');return false;">Äg din sida</a>
+</div><div class="mask" id="mask">
   <div class="sheet">
     <button class="x" onclick="closeSheet()">✕</button>
     <h3 id="stitle">Äg</h3><p id="sdesc"></p>
@@ -90,8 +93,23 @@ header p{font-size:.72rem;opacity:.9}
     <label>Telefon</label><input id="cphone" type="tel">
     <label>E-post</label><input id="cmail" type="email">
     <label>Sajt</label><input id="cweb" placeholder="https://">
-    <label class="check"><input type="checkbox" id="cboost"> Syns högre</label>
+    <label class="check"><input type="checkbox" id="cboost"> Syns högre (betald ranking)</label>
     <button class="go" onclick="sendClaim()">Skicka</button>
+  </div>
+</div>
+<div class="mask" id="tipMask">
+  <div class="sheet">
+    <button class="x" onclick="document.getElementById('tipMask').classList.remove('on')">✕</button>
+    <h3 id="tiptitle">Saknas en pizzeria?</h3>
+    <p id="tipdesc">Vi lägger in den efter snabb koll mot egen sajt eller nummer.</p>
+    <input type="hidden" id="tipkind" value="saknas">
+    <input type="hidden" id="tippid">
+    <label>Namn</label><input id="tname">
+    <label>Stad</label><input id="tcity">
+    <label>Telefon</label><input id="tphone" type="tel">
+    <label>Sajt</label><input id="tweb" placeholder="https://">
+    <label>Övrigt</label><textarea id="tnote" placeholder="Adress, meny-länk..."></textarea>
+    <button class="go" onclick="sendTip()">Skicka</button>
   </div>
 </div>
 <div class="mask" id="slumpMask">
@@ -170,6 +188,7 @@ function cardHtml(p,full){
       ${p.menu_url?`<a class="meny" target="_blank" href="${p.menu_url}">🔗 Sajt</a>`:"<a class='meny off'>🔗</a>"}
       <button class="act claim" onclick='openClaim(${JSON.stringify(p.id)},${JSON.stringify(p.name)},${JSON.stringify(p.phone||"")})'>Äg</button>
     </div>
+    ${full?`<button class="act claim" style="width:100%;margin-top:8px" onclick='openTip("syns_hogre",${JSON.stringify(p.id)},${JSON.stringify(p.name)},${JSON.stringify(p.city||"")})'>Syns högre</button>`:""}
     ${full&&m.length?`<p class="desc" style="margin-top:14px"><b>Digital meny</b></p>`+m.map(i=>`<div class="item"><span>${i.name}</span><span>${i.price_sek?i.price_sek+" kr":""}</span></div>`).join("")+`<button class="act claim" style="width:100%;margin-top:10px" onclick="slumpPizza('${p.id}')">🎲 Slumpa pizza här</button>`:full?`<p class="desc">Ingen digital meny inlagd än.</p>`:""}
   </article>`;
 }
@@ -177,7 +196,7 @@ function render(){
   const list=getList();
   const cap=(city||document.getElementById("q").value.trim()||filter==="fav")?800:80;
   document.getElementById("count").innerHTML="Visar <b style='color:#fff'>"+Math.min(list.length,cap)+"</b> av "+list.length;
-  document.getElementById("list").innerHTML=list.length?list.slice(0,cap).map(p=>cardHtml(p,false)).join(""):"<div class='empty'>Inget här. Lägg favoriter med 🤍</div>";
+  document.getElementById("list").innerHTML=list.length?list.slice(0,cap).map(p=>cardHtml(p,false)).join(""):"<div class='empty'>Inget här. Saknas någon? Tryck Saknas?</div>";
 }
 function openDetail(id){
   const p=all.find(x=>x.id===id);if(!p)return;
@@ -193,7 +212,7 @@ function goList(){
   document.getElementById("detailPage").classList.remove("on");
   document.getElementById("listPage").classList.add("on");
   document.getElementById("back").style.display="none";
-  document.getElementById("ownerbar").style.display="block";
+  document.getElementById("ownerbar").style.display="flex";
   document.getElementById("htitle").textContent="🍕 Pizza Meny";
   document.getElementById("sub").textContent=all.length+" pizzerior · live";
   render();
@@ -207,11 +226,12 @@ function doSlump(mode){
   if(!pool.length){alert("Inget att slumpa");return}
   const p=pool[Math.floor(Math.random()*pool.length)];
   openDetail(p.id);
-  if(menuOf(p.id).length) slumpPizza(p.id);
+  const m=menuOf(p.id);
+  if(m.length) slumpPizza(p.id);
 }
 function slumpPizza(id){
   const m=menuOf(id);
-  if(!m.length){alert("Ingen digital meny än.");return}
+  if(!m.length){alert("Ingen digital meny på den här pizzerian än.");return}
   const x=m[Math.floor(Math.random()*m.length)];
   alert("🍕 "+x.name+(x.price_sek?" · "+x.price_sek+" kr":""));
 }
@@ -220,7 +240,7 @@ function openClaim(id,name,listed){
   document.getElementById("pid").value=id;
   document.getElementById("pid").dataset.listed=listed||"";
   document.getElementById("stitle").textContent="Äg "+name;
-  document.getElementById("sdesc").textContent=listed?"Samma nummer som på kortet.":"Pizzerians nummer.";
+  document.getElementById("sdesc").textContent=listed?"Samma nummer som på kortet. Kryssa Syns högre om du vill betala för topp.":"Pizzerians nummer.";
   document.getElementById("mask").classList.add("on");
 }
 function closeSheet(){document.getElementById("mask").classList.remove("on")}
@@ -232,9 +252,38 @@ async function sendClaim(){
   if(listed&&digits(listed)&&digits(phone)!==digits(listed)){alert("Numret måste matcha: "+listed);return}
   const pend=await fetch(URL+"/rest/v1/claims?select=id&pizzeria_id=eq."+pid+"&status=eq.pending",{headers:{apikey:KEY,Authorization:"Bearer "+KEY}});
   if(pend.ok&&(await pend.json()).length){alert("Redan en claim.");return}
-  const r=await fetch(URL+"/rest/v1/claims",{method:"POST",headers:{apikey:KEY,Authorization:"Bearer "+KEY,"Content-Type":"application/json",Prefer:"return=minimal"},body:JSON.stringify({pizzeria_id:pid,status:"pending",proof_note:JSON.stringify({name,phone,email,web,boost})})});
+  const r=await fetch(URL+"/rest/v1/claims",{method:"POST",headers:{apikey:KEY,Authorization:"Bearer "+KEY,"Content-Type":"application/json",Prefer:"return=minimal"},body:JSON.stringify({pizzeria_id:pid,status:"pending",verification_method:boost?"syns_hogre":"phone",verification_data:JSON.stringify({name,phone,email,web,boost})})});
   if(!r.ok){alert(await r.text());return}
-  closeSheet();alert("Tack. Vi granskar.");
+  closeSheet();alert(boost?"Tack. Claim + Syns högre inskickat.":"Tack. Vi granskar.");
+}
+function openTip(kind,pid,name,cty){
+  document.getElementById("tipkind").value=kind;
+  document.getElementById("tippid").value=pid||"";
+  document.getElementById("tname").value=name||"";
+  document.getElementById("tcity").value=cty||city||document.getElementById("q").value||"";
+  document.getElementById("tphone").value="";
+  document.getElementById("tweb").value="";
+  document.getElementById("tnote").value="";
+  document.getElementById("tiptitle").textContent=kind==="syns_hogre"?"Syns högre":"Saknas en pizzeria?";
+  document.getElementById("tipdesc").textContent=kind==="syns_hogre"?"Vi hör av oss om betald ranking. Inget dras förrän vi sagt ja.":"Vi lägger in efter koll mot egen sajt eller nummer.";
+  document.getElementById("tipMask").classList.add("on");
+}
+async function sendTip(){
+  const kind=document.getElementById("tipkind").value;
+  const body={
+    kind,
+    pizzeria_id:document.getElementById("tippid").value||null,
+    name:document.getElementById("tname").value.trim(),
+    city:document.getElementById("tcity").value.trim(),
+    phone:document.getElementById("tphone").value.trim()||null,
+    website:document.getElementById("tweb").value.trim()||null,
+    note:document.getElementById("tnote").value.trim()||null
+  };
+  if(!body.name||!body.city){alert("Namn och stad");return}
+  const r=await fetch(URL+"/rest/v1/tips",{method:"POST",headers:{apikey:KEY,Authorization:"Bearer "+KEY,"Content-Type":"application/json",Prefer:"return=minimal"},body:JSON.stringify(body)});
+  if(!r.ok){alert(await r.text());return}
+  document.getElementById("tipMask").classList.remove("on");
+  alert("Tack. Inskickat.");
 }
 load();
 </script>
