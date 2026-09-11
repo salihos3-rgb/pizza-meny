@@ -16,6 +16,7 @@
 :root{--bg:#0e0e0f;--card:#1a1a1c;--text:#f2f2f2;--muted:#a8a8a8;--line:#2a2a2c;--red:#ff3b5c;--green:#30d158}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;background:radial-gradient(1200px 500px at 50% -10%,#3a1520 0%,#0e0e0f 55%);color:var(--text)}
+body:has(.mask.on),body:has(.ovenwrap.on){overflow:hidden;position:fixed;width:100%;height:100%}
 header{position:sticky;top:0;z-index:10;background:linear-gradient(90deg,#c41e3a,#a01830);padding:14px 16px;display:flex;justify-content:space-between;align-items:center}
 h1{font-size:1.15rem;font-weight:800}
 header p{font-size:.72rem;opacity:.9}
@@ -49,7 +50,7 @@ header p{font-size:.72rem;opacity:.9}
 .back{background:0;border:0;color:#fff;font-size:1.5rem;margin-right:8px}
 .mask{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:40;display:none;align-items:flex-end}
 .mask.on{display:flex}
-.sheet{background:#161618;width:100%;border-radius:20px 20px 0 0;padding:8px 16px 40px;max-height:88vh;overflow:auto;-webkit-overflow-scrolling:touch}
+.sheet{background:#161618;width:100%;border-radius:20px 20px 0 0;padding:8px 16px 40px;max-height:85dvh;overflow:auto;-webkit-overflow-scrolling:touch}
 .sheet h3{margin-bottom:6px;font-size:1.25rem}
 .sheet p{color:var(--muted);font-size:.92rem;margin-bottom:10px}
 .sheet label{display:block;font-size:.8rem;color:var(--muted);margin:12px 0 4px}
@@ -57,11 +58,13 @@ header p{font-size:.72rem;opacity:.9}
 .sheet textarea{min-height:72px}
 .sheet .go{width:100%;margin-top:12px;background:var(--red);border:0;color:#fff;padding:16px;border-radius:14px;font-weight:800;font-size:1rem}
 .sheet .x{position:sticky;top:0;float:right;z-index:8;width:44px;height:44px;border:0;border-radius:22px;background:#161618;color:#fff;font-size:1.5rem;font-weight:800}
-.sheetcol{display:flex;flex-direction:column;overflow:hidden;padding:10px 16px 0;max-height:88vh}
-.sheethead{display:flex;align-items:center;justify-content:space-between;flex-shrink:0;padding:2px 0 10px}
+.sheetcol{display:flex;flex-direction:column;overflow:hidden;padding:12px 16px 0;max-height:85dvh}
+.sheethead{flex-shrink:0;padding:4px 0 8px}
+.sheethead .top{display:flex;align-items:center;justify-content:space-between}
 .sheethead h3{margin:0}
 .sheethead .x{float:none;position:static}
-.sheetbody{overflow:auto;-webkit-overflow-scrolling:touch;flex:1;min-height:0;padding-bottom:36px}
+.sheetbody{overflow:auto;-webkit-overflow-scrolling:touch;flex:1;min-height:0;padding:8px 0 40px}
+.mex{position:fixed;top:max(10px,env(safe-area-inset-top));right:12px;z-index:70;width:44px;height:44px;border:0;border-radius:22px;background:#2a2a2c;color:#fff;font-size:1.45rem;font-weight:800}
 .check{display:flex;gap:8px;align-items:center;margin-top:12px;color:var(--muted);font-size:.85rem}
 .owner{position:fixed;bottom:16px;left:16px;right:16px;z-index:20;display:flex;gap:8px}
 .owner button{flex:1;background:#1a1a1c;border:1px solid var(--line);color:var(--text);padding:14px 8px;border-radius:14px;font-weight:800;font-size:.88rem}
@@ -194,13 +197,17 @@ header p{font-size:.72rem;opacity:.9}
   </div>
 </div>
 <div class="mask" id="meMask" onclick="if(event.target===this)this.classList.remove('on')">
+  <button class="mex" onclick="document.getElementById('meMask').classList.remove('on')" aria-label="Stäng">✕</button>
   <div class="sheet sheetcol" id="meSheet">
     <div class="sheethead">
-      <h3>Jag</h3>
-      <button class="x" onclick="document.getElementById('meMask').classList.remove('on')">✕</button>
+      <div class="top">
+        <h3>Jag</h3>
+        <button class="x" onclick="document.getElementById('meMask').classList.remove('on')">✕</button>
+      </div>
+      <p id="mehint" style="margin:6px 0 0">Tagg och e-post. E-post krävs.</p>
+      <p id="mebox" style="margin:6px 0 0"></p>
     </div>
     <div class="sheetbody">
-    <p id="mehint">Tagg och e-post. E-post krävs.</p>
     <div id="meGuest">
       <label>Tagg / alias</label><input id="mename" placeholder="t.ex. stekarn" autocomplete="username" maxlength="20">
       <label>E-post</label><input id="memail" type="email" placeholder="namn@mejlen.se" autocomplete="email">
@@ -211,7 +218,6 @@ header p{font-size:.72rem;opacity:.9}
       </div>
     </div>
     <div id="meIn" style="display:none">
-      <p id="mebox" style="margin:8px 0 14px"></p>
       <label>Byt tagg</label>
       <input id="retag" placeholder="ny tagg" maxlength="20" autocomplete="off">
       <button class="go" style="background:#2a2a2c" onclick="changeTagg()">Spara tagg</button>
