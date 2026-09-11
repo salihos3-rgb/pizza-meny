@@ -6,9 +6,11 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Pizza Meny">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <title>Pizza Meny</title>
 <meta name="theme-color" content="#c41e3a">
-<meta name="description" content="Hitta pizzeria, nummer och meny. En app. Hela Sverige.">
+<meta name="description" content="Hitta pizzeria, nummer och meny. Slumpa. Spara favoriter. Sverige.">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://cmmnqckszwgsvaaawouw.supabase.co; img-src 'self' data:; font-src 'self'; frame-ancestors 'none'; base-uri 'self'; object-src 'none'; form-action 'self'">
 <link rel="preconnect" href="https://cmmnqckszwgsvaaawouw.supabase.co" crossorigin>
 <style>
 :root{--bg:#0e0e0f;--card:#1a1a1c;--text:#f2f2f2;--muted:#a8a8a8;--line:#2a2a2c;--red:#ff3b5c;--green:#30d158}
@@ -19,6 +21,7 @@ h1{font-size:1.15rem;font-weight:800}
 header p{font-size:.72rem;opacity:.9}
 .iconbtn{background:rgba(255,255,255,.2);border:0;color:#fff;padding:10px 12px;border-radius:16px;font-weight:700;font-size:.82rem;margin-left:6px}
 .iconbtn.hot{background:#ffc400;color:#111}
+.iconbtn.q{min-width:42px;font-size:1.05rem;font-weight:900}
 .wrap{padding:14px 16px 128px}
 .search{position:relative}
 .search input{width:100%;padding:16px 48px 16px 16px;border-radius:14px;border:1.5px solid var(--line);background:var(--card);color:var(--text);font-size:1.05rem}
@@ -108,12 +111,13 @@ header p{font-size:.72rem;opacity:.9}
   <div>
     <button class="iconbtn" onclick="openMe()">Jag</button>
     <button class="iconbtn hot" onclick="openSlump()">Slumpa</button>
+    <button class="iconbtn q" onclick="openHelp()" aria-label="Om appen">?</button>
   </div>
 </header>
 <div class="page on" id="listPage">
 <div class="wrap">
   <div class="search">
-    <input id="q" type="search" placeholder="Skriv stad..." oninput="onType()" onchange="rememberQ()" enterkeyhint="search">
+    <input id="q" type="search" placeholder="Skriv stad..." oninput="onType()" onchange="rememberQ()" enterkeyhint="search" autocomplete="off">
     <button class="clear" id="clr" onclick="wipe()">✕</button>
   </div>
   <div class="chips" id="recent"></div>
@@ -136,10 +140,11 @@ header p{font-size:.72rem;opacity:.9}
 <button class="x" onclick="closeSheet()">✕</button>
 <h3 id="stitle">Äg</h3><p id="sdesc"></p>
 <input type="hidden" id="pid">
-<label>Namn</label><input id="cname">
-<label>Telefon</label><input id="cphone" type="tel">
-<label>E-post</label><input id="cmail" type="email">
-<label>Sajt</label><input id="cweb" placeholder="https://">
+<input class="hp" id="chp" tabindex="-1" autocomplete="off">
+<label>Namn</label><input id="cname" autocomplete="name">
+<label>Telefon</label><input id="cphone" type="tel" autocomplete="tel">
+<label>E-post</label><input id="cmail" type="email" autocomplete="email">
+<label>Sajt</label><input id="cweb" placeholder="https://" inputmode="url">
 <label class="check"><input type="checkbox" id="cboost"> Jag vill synas högre · 299 kr/mån</label>
 <button class="go" onclick="sendClaim()">Skicka</button>
 </div></div>
@@ -148,6 +153,7 @@ header p{font-size:.72rem;opacity:.9}
 <h3 id="tiptitle">Saknas en pizzeria?</h3>
 <p id="tipdesc">Efterkontroll mot egen sajt eller nummer.</p>
 <input type="hidden" id="tipkind" value="saknas"><input type="hidden" id="tippid">
+<input class="hp" id="thp" tabindex="-1" autocomplete="off">
 <label>Namn</label><input id="tname">
 <label>Stad</label><input id="tcity">
 <label>Telefon</label><input id="tphone" type="tel">
@@ -168,19 +174,32 @@ header p{font-size:.72rem;opacity:.9}
 <button class="x" onclick="document.getElementById('meMask').classList.remove('on')">✕</button>
 <h3>Ditt konto</h3>
 <p id="mehint">Namn och e-post. E-post krävs.</p>
-<label>Namn</label><input id="mename" placeholder="Ditt namn">
-<label>E-post</label><input id="memail" type="email" placeholder="namn@mejlen.se">
+<label>Namn</label><input id="mename" placeholder="Ditt namn" autocomplete="name">
+<label>E-post</label><input id="memail" type="email" placeholder="namn@mejlen.se" autocomplete="email">
 <button class="go" onclick="saveMe()">Öppna konto</button>
+<div id="verifyBox" style="display:none;margin-top:12px">
+<p>Öppna verifieringslänken på den här telefonen. Vänner syns inte förrän det är gjort.</p>
+<button class="go" style="background:#2a2a2c" onclick="copyVerify()">Kopiera verifieringslänk</button>
+</div>
+<div id="friendsBox" style="display:none;margin-top:16px">
+<h3>Vänner</h3>
+<p>Lägg till vänner. Båda måste acceptera. Då syns vad de beställde och var. Inget syns för andra.</p>
+<p>Själva listan öppnas när fler verifierade konton finns. Inget delas utan accept.</p>
+</div>
 <p style="margin-top:14px">Lägg till på hemskärm: Dela → Lägg till på hemskärm.</p>
 <button class="go" style="background:#2a2a2c" onclick="openContact()">Kontakt</button>
 </div></div>
 <div class="mask" id="helpMask"><div class="sheet">
 <button class="x" onclick="document.getElementById('helpMask').classList.remove('on')">✕</button>
-<h3 id="helptitle">Äg din sida</h3>
-<p id="help1" style="display:none"></p>
-<p id="help2" style="display:none"></p>
+<h3 id="helptitle">Pizza Meny</h3>
+<div id="helpApp">
+<p>En lista. Pizzeria, stad, nummer, karta och meny-länk. Sök. Slumpa. Ugnen väljer.</p>
+<p>Konto gör favoriter lättare att spara och se. Med verifierad e-post kan du lägga till vänner och se vad de beställde och var — bara om båda accepterat. Vänner syns inte alls innan kontot är verifierat med länken i mejlen.</p>
+</div>
+<div id="helpOwner" style="display:none">
 <p>Öppna pizzerian. Tryck Äg. Skriv namn och nummer.</p>
 <p>Vill synas högre? Kryssa i rutan. <span class="price">299 kr/mån</span>. Villkor när ni tecknar.</p>
+</div>
 <button class="go" onclick="document.getElementById('helpMask').classList.remove('on')">Ok</button>
 </div></div>
 <div class="mask" id="contactMask"><div class="sheet">
@@ -246,6 +265,6 @@ header p{font-size:.72rem;opacity:.9}
     </div>
   </div>
 </div>
-<script src="app.js?v=20260911f"></script>
+<script src="app.js?v=20260911h"></script>
 </body>
 </html>
