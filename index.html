@@ -49,14 +49,14 @@ header p{font-size:.72rem;opacity:.9}
 .back{background:0;border:0;color:#fff;font-size:1.5rem;margin-right:8px}
 .mask{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:40;display:none;align-items:flex-end}
 .mask.on{display:flex}
-.sheet{background:#161618;width:100%;border-radius:20px 20px 0 0;padding:18px 16px 32px;max-height:90vh;overflow:auto}
+.sheet{background:#161618;width:100%;border-radius:20px 20px 0 0;padding:8px 16px 40px;max-height:88vh;overflow:auto;-webkit-overflow-scrolling:touch}
 .sheet h3{margin-bottom:6px;font-size:1.25rem}
 .sheet p{color:var(--muted);font-size:.92rem;margin-bottom:10px}
 .sheet label{display:block;font-size:.8rem;color:var(--muted);margin:12px 0 4px}
 .sheet input,.sheet textarea{width:100%;padding:14px;border-radius:12px;border:1.5px solid var(--line);background:var(--card);color:var(--text);font:inherit;font-size:1.02rem}
 .sheet textarea{min-height:72px}
 .sheet .go{width:100%;margin-top:12px;background:var(--red);border:0;color:#fff;padding:16px;border-radius:14px;font-weight:800;font-size:1rem}
-.sheet .x{float:right;background:0;border:0;color:var(--muted);font-size:1.3rem}
+.sheet .x{position:sticky;top:0;float:right;z-index:8;width:44px;height:44px;border:0;border-radius:22px;background:#161618;color:#fff;font-size:1.5rem;font-weight:800}
 .check{display:flex;gap:8px;align-items:center;margin-top:12px;color:var(--muted);font-size:.85rem}
 .owner{position:fixed;bottom:16px;left:16px;right:16px;z-index:20;display:flex;gap:8px}
 .owner button{flex:1;background:#1a1a1c;border:1px solid var(--line);color:var(--text);padding:14px 8px;border-radius:14px;font-weight:800;font-size:.88rem}
@@ -75,18 +75,13 @@ header p{font-size:.72rem;opacity:.9}
 .fbtn.bad{background:#3a1518;color:#ff8a9a}
 .danger{margin-top:18px;padding-top:8px;border-top:1px solid var(--line)}
 @keyframes fadein{from{opacity:0}to{opacity:1}}
-.ovenbg{position:absolute;inset:0;pointer-events:none;background:
-  radial-gradient(ellipse at 50% 70%,rgba(255,90,20,.28),transparent 55%),
-  radial-gradient(ellipse at 50% 100%,rgba(255,40,0,.18),transparent 50%)}
+.ovenbg{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 70%,rgba(255,90,20,.28),transparent 55%),radial-gradient(ellipse at 50% 100%,rgba(255,40,0,.18),transparent 50%)}
 .spark{position:absolute;width:4px;height:4px;border-radius:50%;background:#ffc400;opacity:0;animation:spark 2.4s ease-in-out infinite}
 @keyframes spark{0%,100%{opacity:0;transform:translateY(12px) scale(.4)}40%{opacity:.9;transform:translateY(-28px) scale(1)}80%{opacity:0}}
 .oven{width:min(360px,90vw);text-align:center;position:relative;overflow:visible;z-index:2}
 .ovenstage{position:relative;height:250px;overflow:visible}
 .ovenbox{position:relative;height:220px;border-radius:18px 18px 12px 12px;background:linear-gradient(#4a2818,#1a0c0a 55%,#0c0605);border:4px solid #6a3a28;box-shadow:0 0 60px rgba(255,90,20,.45),0 0 120px rgba(255,60,0,.18),inset 0 -20px 40px rgba(0,0,0,.5);overflow:hidden}
-.embers{position:absolute;inset:0;pointer-events:none;background:
-  radial-gradient(circle at 30% 80%,rgba(255,90,20,.7),transparent 40%),
-  radial-gradient(circle at 70% 85%,rgba(255,160,40,.5),transparent 38%),
-  radial-gradient(circle at 50% 95%,rgba(255,220,80,.25),transparent 45%)}
+.embers{position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 30% 80%,rgba(255,90,20,.7),transparent 40%),radial-gradient(circle at 70% 85%,rgba(255,160,40,.5),transparent 38%),radial-gradient(circle at 50% 95%,rgba(255,220,80,.25),transparent 45%)}
 .heat{position:absolute;inset:0;background:linear-gradient(180deg,transparent 20%,rgba(255,140,40,.28) 100%);animation:shimmer 1.2s ease-in-out infinite alternate}
 @keyframes shimmer{from{opacity:.4}to{opacity:1}}
 .door{position:absolute;inset:8px 10px 28px;border-radius:10px;background:linear-gradient(#2c1614,#120808);border:2px solid #8a4a32;display:flex;align-items:center;justify-content:center;font-size:3.2rem;transform-origin:bottom;transition:transform .7s cubic-bezier(.2,.8,.2,1),opacity .4s;box-shadow:inset 0 8px 18px rgba(255,180,80,.15)}
@@ -193,8 +188,8 @@ header p{font-size:.72rem;opacity:.9}
     <button class="slumpgo dim" onclick="doSlump('fav')">Mina favoriter</button>
   </div>
 </div>
-<div class="mask" id="meMask">
-  <div class="sheet">
+<div class="mask" id="meMask" onclick="if(event.target===this)this.classList.remove('on')">
+  <div class="sheet" id="meSheet">
     <button class="x" onclick="document.getElementById('meMask').classList.remove('on')">✕</button>
     <h3>Jag</h3>
     <p id="mehint">Tagg och e-post. E-post krävs.</p>
@@ -239,6 +234,7 @@ header p{font-size:.72rem;opacity:.9}
     </div>
     <p style="margin-top:14px">Lägg till på hemskärm: Dela → Lägg till på hemskärm.</p>
     <button class="go" style="background:#2a2a2c" onclick="openContact()">Kontakt</button>
+    <button class="go" style="background:#2a2a2c" onclick="document.getElementById('meMask').classList.remove('on')">Stäng</button>
   </div>
 </div>
 <div class="mask" id="helpMask">
@@ -322,6 +318,6 @@ header p{font-size:.72rem;opacity:.9}
     </div>
   </div>
 </div>
-<script src="app.js?v=20260911m"></script>
+<script src="app.js?v=20260911p"></script>
 </body>
 </html>
