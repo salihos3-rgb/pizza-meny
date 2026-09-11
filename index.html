@@ -28,12 +28,6 @@ header p{font-size:.72rem;opacity:.9}
 .chip,.city{flex-shrink:0;padding:10px 16px;border-radius:22px;border:1px solid var(--line);background:var(--card);color:var(--muted);font-size:.9rem;font-weight:700}
 .chip.on{background:var(--red);border-color:var(--red);color:#fff}
 .city.on{background:#2a2a2c;border-color:#fff;color:#fff}
-.stamps{background:#161618;border:1px solid var(--line);border-radius:16px;padding:12px 14px;margin:8px 0 12px;display:flex;align-items:center;gap:12px}
-.stamps .dots{display:flex;gap:5px;flex-wrap:wrap}
-.stamps i{width:18px;height:18px;border-radius:50%;background:#2a2a2c;display:inline-block}
-.stamps i.on{background:#ffc400;box-shadow:0 0 8px #ffc400}
-.stamps p{font-size:.82rem;color:var(--muted);flex:1}
-.stamps b{color:#fff}
 .count{font-size:.85rem;color:var(--muted);margin:6px 0 10px}
 .card{background:var(--card);border-radius:16px;padding:16px;margin-bottom:12px;position:relative}
 .namebtn{background:0;border:0;color:inherit;font:inherit;text-align:left;width:calc(100% - 44px)}
@@ -129,7 +123,6 @@ header p{font-size:.72rem;opacity:.9}
     <button class="chip" data-f="fav" onclick="setF('fav')">❤️ Mina</button>
   </div>
   <div class="cities" id="cities"></div>
-  <div class="stamps" id="stampbar" onclick="openMe()"></div>
   <div class="count" id="count"></div>
   <div id="list"></div>
 </div>
@@ -141,12 +134,13 @@ header p{font-size:.72rem;opacity:.9}
 </div>
 <div class="mask" id="mask"><div class="sheet">
 <button class="x" onclick="closeSheet()">✕</button>
-<h3 id="stitle">Äg sidan</h3>
-<p id="sdesc">Skriv namn och nummer. Vi kollar. Inget att betala nu.</p>
+<h3 id="stitle">Äg</h3><p id="sdesc"></p>
 <input type="hidden" id="pid">
 <label>Namn</label><input id="cname">
 <label>Telefon</label><input id="cphone" type="tel">
 <label>E-post</label><input id="cmail" type="email">
+<label>Sajt</label><input id="cweb" placeholder="https://">
+<label class="check"><input type="checkbox" id="cboost"> Jag vill synas högre · 299 kr/mån</label>
 <button class="go" onclick="sendClaim()">Skicka</button>
 </div></div>
 <div class="mask" id="tipMask"><div class="sheet">
@@ -173,19 +167,20 @@ header p{font-size:.72rem;opacity:.9}
 <div class="mask" id="meMask"><div class="sheet">
 <button class="x" onclick="document.getElementById('meMask').classList.remove('on')">✕</button>
 <h3>Ditt konto</h3>
-<p id="mehint">8 stämplar = en pizza. Spara namn så stämplarna följer med.</p>
-<div class="stamps" id="stampbox" style="margin:8px 0 14px"></div>
+<p id="mehint">Namn och e-post. E-post krävs.</p>
 <label>Namn</label><input id="mename" placeholder="Ditt namn">
-<label>E-post</label><input id="memail" type="email" placeholder="valfritt">
-<button class="go" onclick="saveMe()">Spara</button>
+<label>E-post</label><input id="memail" type="email" placeholder="namn@mejlen.se">
+<button class="go" onclick="saveMe()">Öppna konto</button>
 <p style="margin-top:14px">Lägg till på hemskärm: Dela → Lägg till på hemskärm.</p>
 <button class="go" style="background:#2a2a2c" onclick="openContact()">Kontakt</button>
 </div></div>
 <div class="mask" id="helpMask"><div class="sheet">
 <button class="x" onclick="document.getElementById('helpMask').classList.remove('on')">✕</button>
 <h3 id="helptitle">Äg din sida</h3>
-<p id="help1">Öppna pizzerian. Tryck Äg. Skriv namn och nummer.</p>
-<p id="help2">Vill ni ligga överst sen? Säg till efteråt. Villkor kommer först när ni tecknar.</p>
+<p id="help1" style="display:none"></p>
+<p id="help2" style="display:none"></p>
+<p>Öppna pizzerian. Tryck Äg. Skriv namn och nummer.</p>
+<p>Vill synas högre? Kryssa i rutan. <span class="price">299 kr/mån</span>. Villkor när ni tecknar.</p>
 <button class="go" onclick="document.getElementById('helpMask').classList.remove('on')">Ok</button>
 </div></div>
 <div class="mask" id="contactMask"><div class="sheet">
@@ -251,6 +246,6 @@ header p{font-size:.72rem;opacity:.9}
     </div>
   </div>
 </div>
-<script src="app.js?v=20260911e"></script>
+<script src="app.js?v=20260911f"></script>
 </body>
 </html>
