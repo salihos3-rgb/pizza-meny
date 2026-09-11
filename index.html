@@ -78,7 +78,7 @@ header p{font-size:.72rem;opacity:.9}
 .pizza.show{transform:translateX(-50%) scale(1);opacity:1}
 .oven h2{margin:18px 0 6px;font-size:1.35rem}
 .oven p{color:var(--muted)}
-.oven .go{width:100%;margin-top:8px;background:var(--red);border:0;color:#fff;padding:14px;border-radius:12px;font-weight:800}
+.oven button.go{width:100%;margin-top:8px;background:var(--red);border:0;color:#fff;padding:14px;border-radius:12px;font-weight:800}
 body{background:radial-gradient(1200px 500px at 50% -10%,#3a1520 0%,var(--bg) 55%)}
 .glow{box-shadow:0 0 0 2px #ffc400}
 .slumpgo{width:100%;margin-top:8px;border:0;color:#fff;padding:14px;border-radius:14px;font-weight:800;font-size:.95rem}
@@ -86,7 +86,7 @@ body{background:radial-gradient(1200px 500px at 50% -10%,#3a1520 0%,var(--bg) 55
 .slumpgo.dim{background:#242426}
 .slumpgo.ovenbtn{background:linear-gradient(180deg,#ffc400,#e08a00);color:#111;margin-top:18px}
 .turtle{position:absolute;left:-130px;bottom:6px;width:96px;height:72px;z-index:8;image-rendering:pixelated;pointer-events:none;transition:left .85s cubic-bezier(.2,.8,.2,1)}
-.turtle.go{left:8px}
+.turtle.in,.turtle.go{left:8px}
 .turtle svg{width:96px;height:72px;display:block;overflow:visible}
 .turtle .held{transform-origin:70px 18px;transition:transform .28s cubic-bezier(.2,1.4,.3,1),opacity .2s}
 .turtle.done{left:-140px;opacity:0;transition:left .4s ease,opacity .3s}
@@ -139,6 +139,7 @@ body{background:radial-gradient(1200px 500px at 50% -10%,#3a1520 0%,var(--bg) 55
   <button onclick="openTip('saknas')">Saknas?</button>
   <button onclick="openOwner()">Äg din sida</button>
 </div>
+
 <div class="mask" id="mask">
   <div class="sheet">
     <button class="x" onclick="closeSheet()">✕</button>
@@ -152,6 +153,7 @@ body{background:radial-gradient(1200px 500px at 50% -10%,#3a1520 0%,var(--bg) 55
     <button class="go" onclick="sendClaim()">Skicka</button>
   </div>
 </div>
+
 <div class="mask" id="tipMask">
   <div class="sheet">
     <button class="x" onclick="document.getElementById('tipMask').classList.remove('on')">✕</button>
@@ -167,6 +169,7 @@ body{background:radial-gradient(1200px 500px at 50% -10%,#3a1520 0%,var(--bg) 55
     <button class="go" onclick="sendTip()">Skicka</button>
   </div>
 </div>
+
 <div class="mask" id="slumpMask">
   <div class="sheet">
     <button class="x" onclick="document.getElementById('slumpMask').classList.remove('on')">✕</button>
@@ -180,6 +183,7 @@ body{background:radial-gradient(1200px 500px at 50% -10%,#3a1520 0%,var(--bg) 55
     <button class="slumpgo ovenbtn" onclick="ovenStart()">🔥 In i ugnen</button>
   </div>
 </div>
+
 <div class="mask" id="helpMask">
   <div class="sheet">
     <button class="x" onclick="document.getElementById('helpMask').classList.remove('on')">✕</button>
@@ -192,6 +196,7 @@ body{background:radial-gradient(1200px 500px at 50% -10%,#3a1520 0%,var(--bg) 55
     <button class="go" style="background:#2a2a2c" onclick="document.getElementById('helpMask').classList.remove('on')">Stäng</button>
   </div>
 </div>
+
 <div class="mask" id="contactMask">
   <div class="sheet">
     <button class="x" onclick="document.getElementById('contactMask').classList.remove('on')">✕</button>
@@ -204,6 +209,7 @@ body{background:radial-gradient(1200px 500px at 50% -10%,#3a1520 0%,var(--bg) 55
     <button class="go" onclick="sendContact()">Skicka</button>
   </div>
 </div>
+
 <div class="ovenwrap" id="oven">
   <button class="iconbtn" style="position:absolute;top:16px;right:16px;z-index:60" onclick="document.getElementById('oven').classList.remove('on')">✕</button>
   <div class="oven">
@@ -253,6 +259,8 @@ body{background:radial-gradient(1200px 500px at 50% -10%,#3a1520 0%,var(--bg) 55
     </div>
   </div>
 </div>
-<script src="app.js?v=20260911b"></script>
+
+<script src="app.js?v=20260911c"></script>
+
 </body>
 </html>
