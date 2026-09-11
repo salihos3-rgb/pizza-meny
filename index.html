@@ -4,13 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Pizza Meny">
 <title>Pizza Meny</title>
 <meta name="theme-color" content="#c41e3a">
+<meta name="description" content="Hitta pizzeria, nummer och meny. En app. Hela Sverige.">
+<link rel="preconnect" href="https://cmmnqckszwgsvaaawouw.supabase.co" crossorigin>
 <style>
 :root{--bg:#0e0e0f;--card:#1a1a1c;--text:#f2f2f2;--muted:#a8a8a8;--line:#2a2a2c;--red:#ff3b5c;--green:#30d158}
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system,sans-serif;background:radial-gradient(1200px 500px at 50% -10%,#3a1520 0%,#0e0e0f 55%);color:var(--text)}
+body{font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--text)}
 header{position:sticky;top:0;z-index:10;background:linear-gradient(90deg,#c41e3a,#a01830);padding:14px 16px;display:flex;justify-content:space-between;align-items:center}
 h1{font-size:1.15rem;font-weight:800}
 header p{font-size:.72rem;opacity:.9}
@@ -21,7 +24,7 @@ header p{font-size:.72rem;opacity:.9}
 .search input{width:100%;padding:13px 44px 13px 14px;border-radius:12px;border:1.5px solid var(--line);background:var(--card);color:var(--text);font-size:1rem}
 .clear{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:32px;height:32px;border:0;border-radius:16px;background:#2a2a2c;color:#fff;display:none}
 .clear.on{display:block}
-.chips,.cities{display:flex;gap:8px;overflow-x:auto;padding:8px 0}
+.chips,.cities{display:flex;gap:8px;overflow-x:auto;padding:8px 0;scrollbar-width:none}
 .chip,.city{flex-shrink:0;padding:7px 12px;border-radius:20px;border:1px solid var(--line);background:var(--card);color:var(--muted);font-size:.8rem;font-weight:650}
 .chip.on{background:var(--red);border-color:var(--red);color:#fff}
 .city.on{background:#2a2a2c;border-color:#fff;color:#fff}
@@ -37,6 +40,8 @@ header p{font-size:.72rem;opacity:.9}
 .row a,.row button.act{flex:1;min-width:70px;text-align:center;text-decoration:none;padding:10px 0;border-radius:12px;font-weight:700;font-size:.8rem;color:#fff;border:0}
 .ring{background:var(--red)}.map{background:#1a73e8}.meny{background:rgba(48,209,88,.18);color:var(--green)!important}
 .claim{background:#2a2a2c;color:var(--text)!important}
+.off{opacity:.35;pointer-events:none}
+.empty{text-align:center;padding:40px 10px;color:var(--muted)}
 .page{display:none}.page.on{display:block}
 .back{background:0;border:0;color:#fff;font-size:1.4rem;margin-right:8px}
 .mask{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:40;display:none;align-items:flex-end}
@@ -47,141 +52,207 @@ header p{font-size:.72rem;opacity:.9}
 .sheet label{display:block;font-size:.78rem;color:var(--muted);margin:10px 0 4px}
 .sheet input,.sheet textarea{width:100%;padding:13px 14px;border-radius:12px;border:1.5px solid var(--line);background:var(--card);color:var(--text);font:inherit}
 .sheet textarea{min-height:72px}
-.sheet .go,.oven .go{width:100%;margin-top:8px;background:var(--red);border:0;color:#fff;padding:14px;border-radius:12px;font-weight:800}
+.sheet .go{width:100%;margin-top:10px;background:var(--red);border:0;color:#fff;padding:14px;border-radius:12px;font-weight:800}
 .sheet .x{float:right;background:0;border:0;color:var(--muted);font-size:1.2rem}
 .check{display:flex;gap:8px;align-items:center;margin-top:12px;color:var(--muted);font-size:.85rem}
 .owner{position:fixed;bottom:16px;left:16px;right:16px;z-index:20;display:flex;gap:8px}
-.owner button{flex:1;background:#1a1a1c;border:1px solid var(--line);color:var(--text);padding:12px 8px;border-radius:14px;font-weight:700}
+.owner a,.owner button{flex:1;text-align:center;background:#1a1a1c;border:1px solid var(--line);color:var(--text);padding:12px 8px;border-radius:14px;text-decoration:none;font-weight:700;font-size:.82rem}
 .stars{letter-spacing:3px;font-size:1.2rem;margin:8px 0}
-.item{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line)}
+.item{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line);font-size:.9rem}
 .price{color:#ffc400;font-weight:800}
 .hp{position:absolute;left:-9999px;height:0;width:0;opacity:0}
 .ovenwrap{position:fixed;inset:0;z-index:50;display:none;align-items:center;justify-content:center;background:#050304}
-.ovenwrap.on{display:flex}
-.oven{width:min(360px,90vw);text-align:center;position:relative}
-.ovenstage{position:relative;height:250px}
-.ovenbox{position:relative;height:220px;border-radius:18px;background:linear-gradient(#3a2218,#1a0c0a 55%,#0c0605);border:4px solid #6a3a28;overflow:hidden}
-.embers,.heat{position:absolute;inset:0;pointer-events:none}
-.heat{background:linear-gradient(180deg,transparent 30%,rgba(255,140,40,.18));animation:shimmer 1.2s ease-in-out infinite alternate}
+.ovenwrap.on{display:flex;animation:fadein .25s ease}
+@keyframes fadein{from{opacity:0}to{opacity:1}}
+.oven{width:min(360px,90vw);text-align:center;position:relative;overflow:visible}
+.ovenstage{position:relative;height:250px;overflow:visible}
+.ovenbox{position:relative;height:220px;border-radius:18px 18px 12px 12px;background:linear-gradient(#3a2218,#1a0c0a 55%,#0c0605);border:4px solid #6a3a28;box-shadow:0 0 40px rgba(255,80,20,.35),inset 0 -20px 40px rgba(0,0,0,.5);overflow:hidden}
+.embers{position:absolute;inset:0;pointer-events:none;background:
+  radial-gradient(circle at 30% 80%,rgba(255,90,20,.55),transparent 40%),
+  radial-gradient(circle at 70% 85%,rgba(255,160,40,.4),transparent 38%)}
+.heat{position:absolute;inset:0;background:linear-gradient(180deg,transparent 30%,rgba(255,140,40,.18) 100%);animation:shimmer 1.2s ease-in-out infinite alternate}
 @keyframes shimmer{from{opacity:.35}to{opacity:1}}
-.door{position:absolute;inset:8px 10px 28px;border-radius:10px;background:linear-gradient(#2c1614,#120808);border:2px solid #8a4a32;display:flex;align-items:center;justify-content:center;font-size:3.2rem;transform-origin:bottom;transition:transform .7s}
+.door{position:absolute;inset:8px 10px 28px;border-radius:10px;background:linear-gradient(#2c1614,#120808);border:2px solid #8a4a32;display:flex;align-items:center;justify-content:center;font-size:3.2rem;transform-origin:bottom;transition:transform .7s cubic-bezier(.2,.8,.2,1),opacity .4s;box-shadow:inset 0 8px 18px rgba(255,180,80,.15)}
 .door.shut{transform:scaleY(.06);opacity:.3}
-.pizza{position:absolute;left:50%;bottom:42px;transform:translateX(-50%) scale(.2);font-size:4rem;opacity:0;transition:.55s}
+.pizza{position:absolute;left:50%;bottom:42px;transform:translateX(-50%) scale(.2);font-size:4rem;opacity:0;transition:transform .55s cubic-bezier(.2,1.2,.3,1),opacity .4s}
 .pizza.show{transform:translateX(-50%) scale(1);opacity:1}
-.slumpgo{width:100%;margin-top:8px;border:0;color:#fff;padding:14px;border-radius:14px;font-weight:800}
-.slumpgo.main{background:linear-gradient(180deg,#ff4d6d,#c41e3a)}
+.oven h2{margin:18px 0 6px;font-size:1.35rem}
+.oven p{color:var(--muted)}
+.oven .go{width:100%;margin-top:8px;background:var(--red);border:0;color:#fff;padding:14px;border-radius:12px;font-weight:800}
+body{background:radial-gradient(1200px 500px at 50% -10%,#3a1520 0%,var(--bg) 55%)}
+.glow{box-shadow:0 0 0 2px #ffc400}
+.slumpgo{width:100%;margin-top:8px;border:0;color:#fff;padding:14px;border-radius:14px;font-weight:800;font-size:.95rem}
+.slumpgo.main{background:linear-gradient(180deg,#ff4d6d,#c41e3a);box-shadow:0 8px 24px rgba(196,30,58,.35)}
 .slumpgo.dim{background:#242426}
 .slumpgo.ovenbtn{background:linear-gradient(180deg,#ffc400,#e08a00);color:#111;margin-top:18px}
-.turtle{position:absolute;left:-130px;bottom:6px;width:96px;height:72px;z-index:8;image-rendering:pixelated;pointer-events:none;transition:left .85s}
+.turtle{position:absolute;left:-130px;bottom:6px;width:96px;height:72px;z-index:8;image-rendering:pixelated;pointer-events:none;transition:left .85s cubic-bezier(.2,.8,.2,1)}
 .turtle.go{left:8px}
-.turtle svg{width:96px;height:72px;display:block}
-.turtle.toss .held{opacity:0}
-.turtle.walk .leg{animation:leg .28s steps(2) infinite}
-@keyframes leg{50%{transform:translateY(2px)}}
-.flypie{position:absolute;left:78px;bottom:46px;font-size:1.7rem;z-index:9;opacity:0;pointer-events:none}
-.flypie.go{animation:tossin .55s forwards}
-@keyframes tossin{0%{opacity:1;transform:translate(0,0)}100%{opacity:0;transform:translate(148px,-52px) scale(.4)}}
-</style></head>
+.turtle svg{width:96px;height:72px;display:block;overflow:visible}
+.turtle .held{transform-origin:70px 18px;transition:transform .28s cubic-bezier(.2,1.4,.3,1),opacity .2s}
+.turtle.done{left:-140px;opacity:0;transition:left .4s ease,opacity .3s}
+.turtle.toss .held{opacity:0;transform:translate(42px,-28px) rotate(25deg)}
+.turtle.walk .leg{animation:leg 0.28s steps(2) infinite}
+@keyframes leg{0%{transform:translateY(0)}50%{transform:translateY(2px)}100%{transform:translateY(0)}}
+.flypie{position:absolute;left:78px;bottom:46px;font-size:1.7rem;z-index:9;opacity:0;pointer-events:none;filter:drop-shadow(0 2px 0 #000)}
+.flypie.go{animation:tossin .55s cubic-bezier(.2,.7,.2,1) forwards}
+@keyframes tossin{0%{opacity:1;transform:translate(0,0) scale(1) rotate(-10deg)}55%{opacity:1;transform:translate(118px,-78px) scale(1.15) rotate(18deg)}100%{opacity:0;transform:translate(148px,-52px) scale(.4) rotate(40deg)}}
+</style>
+</head>
 <body>
 <header>
-<div style="display:flex;align-items:center">
-<button class="back" id="back" style="display:none" onclick="goList()">‹</button>
-<div><h1 id="htitle">🍕 Pizza Meny</h1><p id="sub">Nummer. Meny. Klart.</p></div>
-</div>
-<div>
-<button class="iconbtn" onclick="openHelp()">?</button>
-<button class="iconbtn hot" onclick="openSlump()">Slumpa</button>
-</div>
+  <div style="display:flex;align-items:center">
+    <button class="back" id="back" style="display:none" onclick="goList()">‹</button>
+    <div><h1 id="htitle">🍕 Pizza Meny</h1><p id="sub">Nummer. Meny. Klart.</p></div>
+  </div>
+  <div>
+    <button class="iconbtn" onclick="openHelp()">?</button>
+    <button class="iconbtn hot" onclick="openSlump()">Slumpa</button>
+  </div>
 </header>
-<div class="page on" id="listPage"><div class="wrap">
-<div class="search"><input id="q" type="search" placeholder="Skriv stad eller namn..." oninput="onType()" onchange="rememberQ()"><button class="clear" id="clr" onclick="wipe()">✕</button></div>
-<div class="chips" id="recent"></div>
-<div class="chips">
-<button class="chip on" data-f="all" onclick="setF('all')">Alla</button>
-<button class="chip" data-f="near" onclick="setF('near')">📍 Nära</button>
-<button class="chip" data-f="fav" onclick="setF('fav')">❤️</button>
-<button class="chip" data-f="menu" onclick="setF('menu')">🔗 Sajt</button>
-<button class="chip" data-f="phone" onclick="setF('phone')">📞</button>
-<button class="chip" data-f="boost" onclick="setF('boost')">⭐ Sponsrad</button>
+<div class="page on" id="listPage">
+<div class="wrap">
+  <div class="search">
+    <input id="q" type="search" placeholder="Skriv stad eller namn..." oninput="onType()" onchange="rememberQ()" enterkeyhint="search">
+    <button class="clear" id="clr" onclick="wipe()">✕</button>
+  </div>
+  <div class="chips" id="recent"></div>
+  <div class="chips">
+    <button class="chip on" data-f="all" onclick="setF('all')">Alla</button>
+    <button class="chip" data-f="near" onclick="setF('near')">📍 Nära</button>
+    <button class="chip" data-f="fav" onclick="setF('fav')">❤️</button>
+    <button class="chip" data-f="menu" onclick="setF('menu')">🔗 Sajt</button>
+    <button class="chip" data-f="phone" onclick="setF('phone')">📞</button>
+    <button class="chip" data-f="boost" onclick="setF('boost')">⭐ Sponsrad</button>
+  </div>
+  <div class="chips">
+    <button class="chip on" data-s="rank" onclick="setS('rank')">Sortera: topp</button>
+    <button class="chip" data-s="name" onclick="setS('name')">A–Ö</button>
+    <button class="chip" data-s="rate" onclick="setS('rate')">Betyg</button>
+  </div>
+  <div class="cities" id="cities"></div>
+  <div class="count" id="count"></div>
+  <div id="list"></div>
 </div>
-<div class="chips">
-<button class="chip on" data-s="rank" onclick="setS('rank')">Sortera: topp</button>
-<button class="chip" data-s="name" onclick="setS('name')">A–Ö</button>
-<button class="chip" data-s="rate" onclick="setS('rate')">Betyg</button>
 </div>
-<div class="cities" id="cities"></div>
-<div class="count" id="count"></div>
-<div id="list"></div>
-</div></div>
 <div class="page" id="detailPage"><div class="wrap" id="detail"></div></div>
 <div class="owner" id="ownerbar">
-<button onclick="openTip('saknas')">Saknas?</button>
-<button onclick="openOwner()">Äg din sida</button>
+  <button onclick="openTip('saknas')">Saknas?</button>
+  <button onclick="openOwner()">Äg din sida</button>
 </div>
-<div class="mask" id="mask"><div class="sheet">
-<button class="x" onclick="closeSheet()">✕</button>
-<h3 id="stitle">Äg</h3><p id="sdesc"></p>
-<input type="hidden" id="pid">
-<label>Namn</label><input id="cname">
-<label>Telefon</label><input id="cphone" type="tel">
-<label>E-post</label><input id="cmail" type="email">
-<label>Sajt</label><input id="cweb" placeholder="https://">
-<label class="check"><input type="checkbox" id="cboost"> Jag vill synas högre · 299 kr/mån</label>
-<button class="go" onclick="sendClaim()">Skicka</button>
-</div></div>
-<div class="mask" id="tipMask"><div class="sheet">
-<button class="x" onclick="document.getElementById('tipMask').classList.remove('on')">✕</button>
-<h3 id="tiptitle">Saknas en pizzeria?</h3>
-<p id="tipdesc">Efterkontroll mot egen sajt eller nummer.</p>
-<input type="hidden" id="tipkind" value="saknas"><input type="hidden" id="tippid">
-<label>Namn</label><input id="tname">
-<label>Stad</label><input id="tcity">
-<label>Telefon</label><input id="tphone" type="tel">
-<label>Sajt</label><input id="tweb" placeholder="https://">
-<label>Övrigt</label><textarea id="tnote"></textarea>
-<button class="go" onclick="sendTip()">Skicka</button>
-</div></div>
-<div class="mask" id="slumpMask"><div class="sheet">
-<button class="x" onclick="document.getElementById('slumpMask').classList.remove('on')">✕</button>
-<h3>Slumpa</h3>
-<p>Du slipper välja. Vi pekar. Du ringer.</p>
-<button class="slumpgo main" onclick="doSlump('any')">Valfri i Sverige</button>
-<button class="slumpgo dim" onclick="doSlump('city')">Här i staden</button>
-<button class="slumpgo dim" onclick="doSlump('fav')">Mina favoriter</button>
-<button class="slumpgo dim" onclick="doSlump('menu')">Bara med sajt</button>
-<button class="slumpgo dim" onclick="doSlump('items')">Bara med meny</button>
-<button class="slumpgo ovenbtn" onclick="ovenStart()">🔥 In i ugnen</button>
-</div></div>
-<div class="mask" id="helpMask"><div class="sheet">
-<button class="x" onclick="document.getElementById('helpMask').classList.remove('on')">✕</button>
-<h3 id="helptitle">Hungrig?</h3>
-<p id="help1">Skriv staden. Tryck pizzerian. Ring.</p>
-<p id="help2"><b>Slumpa</b> om du inte vet. <b>Ugnen</b> bakar fram en. Hjärtat sparar.</p>
-<p>Pizzeria: öppna kortet → Äg. <span class="price">299 kr/mån</span> för att ligga överst.</p>
-<button class="go" onclick="openContact()">Kontakt</button>
-<button class="go" style="background:#2a2a2c" onclick="document.getElementById('helpMask').classList.remove('on')">Stäng</button>
-</div></div>
-<div class="mask" id="contactMask"><div class="sheet">
-<button class="x" onclick="document.getElementById('contactMask').classList.remove('on')">✕</button>
-<h3>Kontakt</h3>
-<input class="hp" id="hp" tabindex="-1" autocomplete="off">
-<label>Namn</label><input id="kname">
-<label>E-post</label><input id="kmail" type="email">
-<label>Meddelande</label><textarea id="kmsg"></textarea>
-<button class="go" onclick="sendContact()">Skicka</button>
-</div></div>
-<div class="ovenwrap" id="oven"><div class="oven">
-<div class="ovenstage">
-<div class="turtle" id="turtle"><svg viewBox="0 0 32 24" shape-rendering="crispEdges"><g class="held"><rect x="21" y="3" width="9" height="9" fill="#e8b03a"/><rect x="22" y="4" width="7" height="7" fill="#d9480f"/></g><rect x="8" y="10" width="12" height="8" fill="#1f6b38"/><rect x="9" y="11" width="10" height="6" fill="#2f9e4f"/><rect x="18" y="11" width="5" height="5" fill="#8bc34a"/><rect x="21" y="12" width="2" height="2" fill="#111"/><rect x="16" y="8" width="7" height="3" fill="#c41e3a"/><rect x="15" y="9" width="2" height="2" fill="#7a1424"/><g class="leg"><rect x="9" y="17" width="3" height="3" fill="#7cb342"/><rect x="16" y="17" width="3" height="3" fill="#7cb342"/></g></svg></div>
-<div class="flypie" id="flypie">🍕</div>
-<div class="ovenbox"><div class="embers"></div><div class="heat"></div><div class="pizza" id="ovenPizza">🍕</div><div class="door" id="door">🔥</div></div>
+<div class="mask" id="mask">
+  <div class="sheet">
+    <button class="x" onclick="closeSheet()">✕</button>
+    <h3 id="stitle">Äg</h3><p id="sdesc"></p>
+    <input type="hidden" id="pid">
+    <label>Namn</label><input id="cname">
+    <label>Telefon</label><input id="cphone" type="tel">
+    <label>E-post</label><input id="cmail" type="email">
+    <label>Sajt</label><input id="cweb" placeholder="https://">
+    <label class="check"><input type="checkbox" id="cboost"> Jag vill synas högre · 299 kr/mån</label>
+    <button class="go" onclick="sendClaim()">Skicka</button>
+  </div>
 </div>
-<h2 id="ovenTitle">Ugnen är het</h2>
-<p id="ovenSub">En sekund</p>
-<div id="ovenActs" style="display:none;margin-top:14px">
-<button class="go" id="ovenRing">Ring</button>
-<button class="go" style="background:#2a2a2c" onclick="ovenOpen()">Öppna pizzerian</button>
-<button class="go" style="background:#2a2a2c" onclick="ovenAgain()">En gång till</button>
-</div></div></div>
-<script src="app.js"></script>
-</body></html>
+<div class="mask" id="tipMask">
+  <div class="sheet">
+    <button class="x" onclick="document.getElementById('tipMask').classList.remove('on')">✕</button>
+    <h3 id="tiptitle">Saknas en pizzeria?</h3>
+    <p id="tipdesc">Efterkontroll mot egen sajt eller nummer.</p>
+    <input type="hidden" id="tipkind" value="saknas">
+    <input type="hidden" id="tippid">
+    <label>Namn</label><input id="tname">
+    <label>Stad</label><input id="tcity">
+    <label>Telefon</label><input id="tphone" type="tel">
+    <label>Sajt</label><input id="tweb" placeholder="https://">
+    <label>Övrigt</label><textarea id="tnote" placeholder="Adress, meny-länk..."></textarea>
+    <button class="go" onclick="sendTip()">Skicka</button>
+  </div>
+</div>
+<div class="mask" id="slumpMask">
+  <div class="sheet">
+    <button class="x" onclick="document.getElementById('slumpMask').classList.remove('on')">✕</button>
+    <h3>Slumpa</h3>
+    <p>Du slipper välja. Vi pekar. Du ringer.</p>
+    <button class="slumpgo main" onclick="doSlump('any')">Valfri i Sverige</button>
+    <button class="slumpgo dim" onclick="doSlump('city')">Här i staden</button>
+    <button class="slumpgo dim" onclick="doSlump('fav')">Mina favoriter</button>
+    <button class="slumpgo dim" onclick="doSlump('menu')">Bara med sajt</button>
+    <button class="slumpgo dim" onclick="doSlump('items')">Bara med meny</button>
+    <button class="slumpgo ovenbtn" onclick="ovenStart()">🔥 In i ugnen</button>
+  </div>
+</div>
+<div class="mask" id="helpMask">
+  <div class="sheet">
+    <button class="x" onclick="document.getElementById('helpMask').classList.remove('on')">✕</button>
+    <h3 id="helptitle">Hungrig?</h3>
+    <p id="help1">Skriv staden. Tryck pizzerian. Ring.</p>
+    <p id="help2"><b>Slumpa</b> om du inte vet. <b>Ugnen</b> bakar fram en. Hjärtat sparar.</p>
+    <p>Pizzeria: öppna kortet → Äg. <span class="price">299 kr/mån</span> för att ligga överst. Villkor när ni tecknar.</p>
+    <p>Hemskärm: Dela → Lägg till på hemskärm. Då är det en app.</p>
+    <button class="go" onclick="openContact()">Kontakt</button>
+    <button class="go" style="background:#2a2a2c" onclick="document.getElementById('helpMask').classList.remove('on')">Stäng</button>
+  </div>
+</div>
+<div class="mask" id="contactMask">
+  <div class="sheet">
+    <button class="x" onclick="document.getElementById('contactMask').classList.remove('on')">✕</button>
+    <h3>Kontakt</h3>
+    <p>Pizzeria, press eller fel i listan.</p>
+    <input class="hp" id="hp" tabindex="-1" autocomplete="off">
+    <label>Namn</label><input id="kname">
+    <label>E-post</label><input id="kmail" type="email">
+    <label>Meddelande</label><textarea id="kmsg"></textarea>
+    <button class="go" onclick="sendContact()">Skicka</button>
+  </div>
+</div>
+<div class="ovenwrap" id="oven">
+  <button class="iconbtn" style="position:absolute;top:16px;right:16px;z-index:60" onclick="document.getElementById('oven').classList.remove('on')">✕</button>
+  <div class="oven">
+    <div class="ovenstage">
+      <div class="turtle" id="turtle">
+        <svg viewBox="0 0 32 24" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
+          <g class="held">
+            <rect x="21" y="3" width="9" height="9" fill="#e8b03a"/>
+            <rect x="22" y="4" width="7" height="7" fill="#d9480f"/>
+            <rect x="24" y="6" width="3" height="3" fill="#f4d03f"/>
+            <rect x="23" y="5" width="1" height="1" fill="#fff3bf"/>
+            <rect x="27" y="5" width="1" height="1" fill="#fff3bf"/>
+          </g>
+          <rect x="8" y="10" width="12" height="8" fill="#1f6b38"/>
+          <rect x="9" y="11" width="10" height="6" fill="#2f9e4f"/>
+          <rect x="10" y="12" width="3" height="2" fill="#16552c"/>
+          <rect x="15" y="12" width="3" height="2" fill="#16552c"/>
+          <rect x="18" y="11" width="5" height="5" fill="#8bc34a"/>
+          <rect x="21" y="12" width="2" height="2" fill="#111"/>
+          <rect x="22" y="12" width="1" height="1" fill="#fff"/>
+          <rect x="16" y="8" width="7" height="3" fill="#c41e3a"/>
+          <rect x="15" y="9" width="2" height="2" fill="#7a1424"/>
+          <rect x="17" y="7" width="5" height="2" fill="#e23b5c"/>
+          <rect x="20" y="7" width="2" height="1" fill="#ffd54a"/>
+          <g class="leg">
+            <rect x="9" y="17" width="3" height="3" fill="#7cb342"/>
+            <rect x="16" y="17" width="3" height="3" fill="#7cb342"/>
+          </g>
+          <rect x="7" y="13" width="3" height="3" fill="#8bc34a"/>
+          <rect x="20" y="13" width="3" height="3" fill="#8bc34a"/>
+        </svg>
+      </div>
+      <div class="flypie" id="flypie">🍕</div>
+      <div class="ovenbox">
+        <div class="embers"></div>
+        <div class="heat"></div>
+        <div class="pizza" id="ovenPizza">🍕</div>
+        <div class="door" id="door">🔥</div>
+      </div>
+    </div>
+    <h2 id="ovenTitle">Ugnen är het</h2>
+    <p id="ovenSub">En sekund</p>
+    <div id="ovenActs" style="display:none;margin-top:14px">
+      <button class="go" id="ovenRing">Ring</button>
+      <button class="go" style="background:#2a2a2c" onclick="ovenOpen()">Öppna pizzerian</button>
+      <button class="go" style="background:#2a2a2c" onclick="ovenAgain()">En gång till</button>
+    </div>
+  </div>
+</div>
+<script src="app.js?v=20260911b"></script>
+</body>
+</html>
