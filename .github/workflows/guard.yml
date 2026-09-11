@@ -1,0 +1,24 @@
+name: guard
+on:
+  push:
+    branches: [main]
+  pull_request:
+jobs:
+  boot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Refuse empty or placeholder deploys
+        run: |
+          set -e
+          test -f index.html
+          test -f app.js
+          ISIZE=$(wc -c < index.html)
+          JSIZE=$(wc -c < app.js)
+          echo "index.html=$ISIZE app.js=$JSIZE"
+          test "$ISIZE" -gt 15000
+          test "$JSIZE" -gt 20000
+          ! grep -F -n PLACEHOLDER index.html app.js
+          ! grep -F -n RESTORE_FROM_LIVE index.html app.js
+          node --check app.js
+          echo OK
