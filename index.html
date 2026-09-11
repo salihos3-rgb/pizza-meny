@@ -3,6 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Pizza Meny">
 <title>Pizza Meny</title>
 <meta name="theme-color" content="#c41e3a">
 <style>
@@ -15,30 +17,70 @@ header p{font-size:.72rem;opacity:.9}
 .iconbtn{background:rgba(255,255,255,.2);border:0;color:#fff;padding:8px 10px;border-radius:16px;font-weight:700;font-size:.78rem;margin-left:6px}
 .iconbtn.hot{background:#ffc400;color:#111}
 .wrap{padding:14px 16px 128px}
-.search input{width:100%;padding:13px 14px;border-radius:12px;border:1.5px solid var(--line);background:var(--card);color:var(--text);font-size:1rem}
+.search{position:relative}
+.search input{width:100%;padding:13px 44px 13px 14px;border-radius:12px;border:1.5px solid var(--line);background:var(--card);color:var(--text);font-size:1rem}
+.clear{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:32px;height:32px;border:0;border-radius:16px;background:#2a2a2c;color:#fff;display:none}
+.clear.on{display:block}
 .chips,.cities{display:flex;gap:8px;overflow-x:auto;padding:8px 0}
 .chip,.city{flex-shrink:0;padding:7px 12px;border-radius:20px;border:1px solid var(--line);background:var(--card);color:var(--muted);font-size:.8rem;font-weight:650}
-.chip.on,.city.on{background:var(--red);border-color:var(--red);color:#fff}
+.chip.on{background:var(--red);border-color:var(--red);color:#fff}
+.city.on{background:#2a2a2c;border-color:#fff;color:#fff}
+.count{font-size:.85rem;color:var(--muted);margin:6px 0 10px}
 .card{background:var(--card);border-radius:16px;padding:14px;margin-bottom:12px;position:relative}
-.row{display:flex;gap:8px}
-.row a,.row button.act{flex:1;text-align:center;text-decoration:none;padding:10px 0;border-radius:12px;font-weight:700;font-size:.8rem;color:#fff;border:0}
-.ring{background:var(--red)}.map{background:#1a73e8}.meny{background:rgba(48,209,88,.18);color:var(--green)!important}
-.claim{background:#2a2a2c;color:var(--text)!important}
-.owner{position:fixed;bottom:16px;left:16px;right:16px;z-index:20;display:flex;gap:8px}
-.owner button{flex:1;background:#1a1a1c;border:1px solid var(--line);color:var(--text);padding:12px 8px;border-radius:14px;font-weight:700}
-.mask{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:40;display:none;align-items:flex-end}
-.mask.on{display:flex}
-.sheet{background:#161618;width:100%;border-radius:20px 20px 0 0;padding:18px 16px 28px}
-.sheet .go{width:100%;margin-top:10px;background:var(--red);border:0;color:#fff;padding:14px;border-radius:12px;font-weight:800}
-.sheet input,.sheet textarea{width:100%;padding:13px;border-radius:12px;border:1.5px solid var(--line);background:var(--card);color:var(--text);font:inherit;margin-top:6px}
-.sheet .x{float:right;background:0;border:0;color:var(--muted);font-size:1.2rem}
 .namebtn{background:0;border:0;color:inherit;font:inherit;text-align:left;width:calc(100% - 40px)}
 .heart{position:absolute;top:10px;right:10px;background:0;border:0;font-size:1.3rem}
-.meta{font-size:.82rem;color:var(--muted);margin:6px 0;display:flex;gap:8px;flex-wrap:wrap}
+.meta{font-size:.82rem;color:var(--muted);margin:6px 0;display:flex;flex-wrap:wrap;gap:8px}
 .badge{font-size:.7rem;font-weight:800;padding:2px 6px;border-radius:6px;background:rgba(48,209,88,.18);color:var(--green)}
-.count{font-size:.85rem;color:var(--muted);margin:6px 0 10px}
+.badge.s{background:rgba(255,196,0,.18);color:#ffc400}
+.desc{font-size:.85rem;color:var(--muted);margin-bottom:10px}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.row a,.row button.act{flex:1;min-width:70px;text-align:center;text-decoration:none;padding:10px 0;border-radius:12px;font-weight:700;font-size:.8rem;color:#fff;border:0}
+.ring{background:var(--red)}.map{background:#1a73e8}.meny{background:rgba(48,209,88,.18);color:var(--green)!important}
+.claim{background:#2a2a2c;color:var(--text)!important}
 .page{display:none}.page.on{display:block}
 .back{background:0;border:0;color:#fff;font-size:1.4rem;margin-right:8px}
+.mask{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:40;display:none;align-items:flex-end}
+.mask.on{display:flex}
+.sheet{background:#161618;width:100%;border-radius:20px 20px 0 0;padding:18px 16px 28px;max-height:90vh;overflow:auto}
+.sheet h3{margin-bottom:6px}
+.sheet p{color:var(--muted);font-size:.88rem;margin-bottom:10px}
+.sheet label{display:block;font-size:.78rem;color:var(--muted);margin:10px 0 4px}
+.sheet input,.sheet textarea{width:100%;padding:13px 14px;border-radius:12px;border:1.5px solid var(--line);background:var(--card);color:var(--text);font:inherit}
+.sheet textarea{min-height:72px}
+.sheet .go,.oven .go{width:100%;margin-top:8px;background:var(--red);border:0;color:#fff;padding:14px;border-radius:12px;font-weight:800}
+.sheet .x{float:right;background:0;border:0;color:var(--muted);font-size:1.2rem}
+.check{display:flex;gap:8px;align-items:center;margin-top:12px;color:var(--muted);font-size:.85rem}
+.owner{position:fixed;bottom:16px;left:16px;right:16px;z-index:20;display:flex;gap:8px}
+.owner button{flex:1;background:#1a1a1c;border:1px solid var(--line);color:var(--text);padding:12px 8px;border-radius:14px;font-weight:700}
+.stars{letter-spacing:3px;font-size:1.2rem;margin:8px 0}
+.item{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line)}
+.price{color:#ffc400;font-weight:800}
+.hp{position:absolute;left:-9999px;height:0;width:0;opacity:0}
+.ovenwrap{position:fixed;inset:0;z-index:50;display:none;align-items:center;justify-content:center;background:#050304}
+.ovenwrap.on{display:flex}
+.oven{width:min(360px,90vw);text-align:center;position:relative}
+.ovenstage{position:relative;height:250px}
+.ovenbox{position:relative;height:220px;border-radius:18px;background:linear-gradient(#3a2218,#1a0c0a 55%,#0c0605);border:4px solid #6a3a28;overflow:hidden}
+.embers,.heat{position:absolute;inset:0;pointer-events:none}
+.heat{background:linear-gradient(180deg,transparent 30%,rgba(255,140,40,.18));animation:shimmer 1.2s ease-in-out infinite alternate}
+@keyframes shimmer{from{opacity:.35}to{opacity:1}}
+.door{position:absolute;inset:8px 10px 28px;border-radius:10px;background:linear-gradient(#2c1614,#120808);border:2px solid #8a4a32;display:flex;align-items:center;justify-content:center;font-size:3.2rem;transform-origin:bottom;transition:transform .7s}
+.door.shut{transform:scaleY(.06);opacity:.3}
+.pizza{position:absolute;left:50%;bottom:42px;transform:translateX(-50%) scale(.2);font-size:4rem;opacity:0;transition:.55s}
+.pizza.show{transform:translateX(-50%) scale(1);opacity:1}
+.slumpgo{width:100%;margin-top:8px;border:0;color:#fff;padding:14px;border-radius:14px;font-weight:800}
+.slumpgo.main{background:linear-gradient(180deg,#ff4d6d,#c41e3a)}
+.slumpgo.dim{background:#242426}
+.slumpgo.ovenbtn{background:linear-gradient(180deg,#ffc400,#e08a00);color:#111;margin-top:18px}
+.turtle{position:absolute;left:-130px;bottom:6px;width:96px;height:72px;z-index:8;image-rendering:pixelated;pointer-events:none;transition:left .85s}
+.turtle.go{left:8px}
+.turtle svg{width:96px;height:72px;display:block}
+.turtle.toss .held{opacity:0}
+.turtle.walk .leg{animation:leg .28s steps(2) infinite}
+@keyframes leg{50%{transform:translateY(2px)}}
+.flypie{position:absolute;left:78px;bottom:46px;font-size:1.7rem;z-index:9;opacity:0;pointer-events:none}
+.flypie.go{animation:tossin .55s forwards}
+@keyframes tossin{0%{opacity:1;transform:translate(0,0)}100%{opacity:0;transform:translate(148px,-52px) scale(.4)}}
 </style></head>
 <body>
 <header>
@@ -52,7 +94,7 @@ header p{font-size:.72rem;opacity:.9}
 </div>
 </header>
 <div class="page on" id="listPage"><div class="wrap">
-<div class="search"><input id="q" type="search" placeholder="Skriv stad eller namn..." oninput="onType()"></div>
+<div class="search"><input id="q" type="search" placeholder="Skriv stad eller namn..." oninput="onType()" onchange="rememberQ()"><button class="clear" id="clr" onclick="wipe()">✕</button></div>
 <div class="chips" id="recent"></div>
 <div class="chips">
 <button class="chip on" data-f="all" onclick="setF('all')">Alla</button>
@@ -60,65 +102,86 @@ header p{font-size:.72rem;opacity:.9}
 <button class="chip" data-f="fav" onclick="setF('fav')">❤️</button>
 <button class="chip" data-f="menu" onclick="setF('menu')">🔗 Sajt</button>
 <button class="chip" data-f="phone" onclick="setF('phone')">📞</button>
+<button class="chip" data-f="boost" onclick="setF('boost')">⭐ Sponsrad</button>
+</div>
+<div class="chips">
+<button class="chip on" data-s="rank" onclick="setS('rank')">Sortera: topp</button>
+<button class="chip" data-s="name" onclick="setS('name')">A–Ö</button>
+<button class="chip" data-s="rate" onclick="setS('rate')">Betyg</button>
 </div>
 <div class="cities" id="cities"></div>
 <div class="count" id="count"></div>
 <div id="list"></div>
 </div></div>
 <div class="page" id="detailPage"><div class="wrap" id="detail"></div></div>
-<div class="owner">
-<button onclick="openTip()">Saknas?</button>
+<div class="owner" id="ownerbar">
+<button onclick="openTip('saknas')">Saknas?</button>
 <button onclick="openOwner()">Äg din sida</button>
 </div>
+<div class="mask" id="mask"><div class="sheet">
+<button class="x" onclick="closeSheet()">✕</button>
+<h3 id="stitle">Äg</h3><p id="sdesc"></p>
+<input type="hidden" id="pid">
+<label>Namn</label><input id="cname">
+<label>Telefon</label><input id="cphone" type="tel">
+<label>E-post</label><input id="cmail" type="email">
+<label>Sajt</label><input id="cweb" placeholder="https://">
+<label class="check"><input type="checkbox" id="cboost"> Jag vill synas högre · 299 kr/mån</label>
+<button class="go" onclick="sendClaim()">Skicka</button>
+</div></div>
 <div class="mask" id="tipMask"><div class="sheet">
 <button class="x" onclick="document.getElementById('tipMask').classList.remove('on')">✕</button>
-<h3>Saknas en pizzeria?</h3>
+<h3 id="tiptitle">Saknas en pizzeria?</h3>
 <p id="tipdesc">Efterkontroll mot egen sajt eller nummer.</p>
+<input type="hidden" id="tipkind" value="saknas"><input type="hidden" id="tippid">
 <label>Namn</label><input id="tname">
 <label>Stad</label><input id="tcity">
 <label>Telefon</label><input id="tphone" type="tel">
+<label>Sajt</label><input id="tweb" placeholder="https://">
+<label>Övrigt</label><textarea id="tnote"></textarea>
 <button class="go" onclick="sendTip()">Skicka</button>
 </div></div>
 <div class="mask" id="slumpMask"><div class="sheet">
 <button class="x" onclick="document.getElementById('slumpMask').classList.remove('on')">✕</button>
 <h3>Slumpa</h3>
 <p>Du slipper välja. Vi pekar. Du ringer.</p>
-<button class="go" onclick="doSlump()">Valfri i Sverige</button>
+<button class="slumpgo main" onclick="doSlump('any')">Valfri i Sverige</button>
+<button class="slumpgo dim" onclick="doSlump('city')">Här i staden</button>
+<button class="slumpgo dim" onclick="doSlump('fav')">Mina favoriter</button>
+<button class="slumpgo dim" onclick="doSlump('menu')">Bara med sajt</button>
+<button class="slumpgo dim" onclick="doSlump('items')">Bara med meny</button>
+<button class="slumpgo ovenbtn" onclick="ovenStart()">🔥 In i ugnen</button>
 </div></div>
 <div class="mask" id="helpMask"><div class="sheet">
 <button class="x" onclick="document.getElementById('helpMask').classList.remove('on')">✕</button>
 <h3 id="helptitle">Hungrig?</h3>
 <p id="help1">Skriv staden. Tryck pizzerian. Ring.</p>
 <p id="help2"><b>Slumpa</b> om du inte vet. <b>Ugnen</b> bakar fram en. Hjärtat sparar.</p>
-<p>Pizzeria: öppna kortet → Äg. 299 kr/mån för att ligga överst.</p>
-<button class="go" onclick="document.getElementById('helpMask').classList.remove('on')">Stäng</button>
+<p>Pizzeria: öppna kortet → Äg. <span class="price">299 kr/mån</span> för att ligga överst.</p>
+<button class="go" onclick="openContact()">Kontakt</button>
+<button class="go" style="background:#2a2a2c" onclick="document.getElementById('helpMask').classList.remove('on')">Stäng</button>
 </div></div>
-<script>
-const URL="https://cmmnqckszwgsvaaawouw.supabase.co";
-const KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNtbW5xY2tzendnc3ZhYWF3b3V3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc1MDM3OTcsImV4cCI6MjEwMzA3OTc5N30.3q6gLw1Zz2ql__Va29fYPwjCkdnJ9-cO1MmKmluF30g";
-const TOP=["Stockholm","Göteborg","Malmö","Uppsala","Västerås","Örebro","Linköping","Helsingborg","Norrköping","Jönköping","Lund","Umeå","Eskilstuna"];
-const COLS="id,name,city,country,phone,lat,lon,menu_url,description,rating,is_sponsored";
-let all=[],filter="all",city="",me=null,typeT=0;
-function favs(){try{return JSON.parse(localStorage.getItem("pm_fav")||"[]")}catch(e){return[]}}
-function isFav(id){return favs().includes(id)}
-function toggleFav(id){const a=favs();const i=a.indexOf(id);if(i>=0)a.splice(i,1);else a.push(id);localStorage.setItem("pm_fav",JSON.stringify(a));render()}
-async function page(off){const r=await fetch(URL+"/rest/v1/pizzerias?select="+COLS+"&order=id.asc&limit=1000&offset="+off,{headers:{apikey:KEY,Authorization:"Bearer "+KEY,Prefer:"count=exact"}});return {rows:await r.json(),total:parseInt(((r.headers.get("content-range")||"").split("/")[1]||"0"),10)}}
-async function load(){try{const first=await page(0);all=first.rows||[];document.getElementById("sub").textContent=all.length+" pizzerior · live";drawCities();render();let off=1000,total=first.total||all.length;while(off<total){const p=await page(off);all=all.concat(p.rows||[]);off+=1000}drawCities();render();document.getElementById("sub").textContent=all.length+" pizzerior · live"}catch(e){document.getElementById("sub").textContent="Fel"}}
-function drawCities(){document.getElementById("cities").innerHTML=`<button class="city" onclick="setCity('')">Alla städer</button>`+TOP.map(c=>`<button class="city" onclick="setCity('${c}')">${c}</button>`).join("")}
-function setCity(c){city=c;document.getElementById("q").value=c||"";render()}
-function setF(f){filter=f;document.querySelectorAll("[data-f]").forEach(c=>c.classList.toggle("on",c.dataset.f===f));if(f==="near"&&!me&&navigator.geolocation)navigator.geolocation.getCurrentPosition(p=>{me={lat:p.coords.latitude,lon:p.coords.longitude};render()});render()}
-function onType(){clearTimeout(typeT);typeT=setTimeout(render,80)}
-function getList(){const q=(document.getElementById("q").value||"").toLowerCase().trim();const exact=(city||"").toLowerCase()||(TOP.map(x=>x.toLowerCase()).includes(q)?q:"");return all.filter(p=>{if(filter==="fav"&&!isFav(p.id))return false;if(filter==="menu"&&!p.menu_url)return false;if(filter==="phone"&&!p.phone)return false;if(filter==="near")return !!(p.lat&&p.lon&&me);if(exact)return (p.city||"").toLowerCase()===exact;if(!q)return true;return (p.name+" "+(p.city||"")).toLowerCase().includes(q)})}
-function cardHtml(p){return `<article class="card"><button class="heart" onclick="toggleFav('${p.id}')">${isFav(p.id)?"❤️":"🤍"}</button><button class="namebtn" onclick="openDetail('${p.id}')"><h2>${p.name}</h2></button><div class="meta"><span>${p.city||""}</span>${p.menu_url?"<span class='badge'>Sajt</span>":""}${p.phone?"<span class='badge'>Tel</span>":""}</div><div class="row">${p.phone?`<a class="ring" href="tel:${p.phone}">📞 Ring</a>`:""}${p.lat?`<a class="map" target="_blank" href="https://maps.apple.com/?daddr=${p.lat},${p.lon}">📍 Karta</a>`:""}${p.menu_url?`<a class="meny" target="_blank" href="${p.menu_url}">🔗 Sajt</a>`:""}</div></article>`}
-function render(){const list=getList();const cap=city||document.getElementById("q").value.trim()?400:80;document.getElementById("count").innerHTML="Visar <b style='color:#fff'>"+Math.min(list.length,cap)+"</b> av "+list.length;document.getElementById("list").innerHTML=list.slice(0,cap).map(cardHtml).join("")||"<p class='count'>Inget här.</p>"}
-function openDetail(id){const p=all.find(x=>x.id===id);if(!p)return;document.getElementById("listPage").classList.remove("on");document.getElementById("detailPage").classList.add("on");document.getElementById("back").style.display="block";document.getElementById("htitle").textContent=p.name;document.getElementById("sub").textContent=p.city||"";document.getElementById("detail").innerHTML=cardHtml(p)}
-function goList(){document.getElementById("detailPage").classList.remove("on");document.getElementById("listPage").classList.add("on");document.getElementById("back").style.display="none";document.getElementById("htitle").textContent="🍕 Pizza Meny";document.getElementById("sub").textContent=all.length+" pizzerior · live";render()}
-function openSlump(){document.getElementById("slumpMask").classList.add("on")}
-function openHelp(){document.getElementById("helptitle").textContent="Hungrig?";document.getElementById("help1").style.display="block";document.getElementById("help2").style.display="block";document.getElementById("helpMask").classList.add("on")}
-function openOwner(){document.getElementById("helptitle").textContent="Äg din sida";document.getElementById("help1").style.display="none";document.getElementById("help2").style.display="none";document.getElementById("helpMask").classList.add("on")}
-function doSlump(){document.getElementById("slumpMask").classList.remove("on");const pool=getList().length?getList():all;if(!pool.length)return;openDetail(pool[Math.floor(Math.random()*pool.length)].id)}
-function openTip(){document.getElementById("tipMask").classList.add("on")}
-async function sendTip(){const name=document.getElementById("tname").value.trim();const cityv=document.getElementById("tcity").value.trim();if(!name||!cityv){alert("Namn och stad");return}const r=await fetch(URL+"/rest/v1/tips",{method:"POST",headers:{apikey:KEY,Authorization:"Bearer "+KEY,"Content-Type":"application/json",Prefer:"return=minimal"},body:JSON.stringify({kind:"saknas",name,city:cityv,phone:document.getElementById("tphone").value.trim()||null})});if(!r.ok){alert(await r.text());return}document.getElementById("tipMask").classList.remove("on");alert("Tack. Efterkontroll.")}
-load();
-</script>
+<div class="mask" id="contactMask"><div class="sheet">
+<button class="x" onclick="document.getElementById('contactMask').classList.remove('on')">✕</button>
+<h3>Kontakt</h3>
+<input class="hp" id="hp" tabindex="-1" autocomplete="off">
+<label>Namn</label><input id="kname">
+<label>E-post</label><input id="kmail" type="email">
+<label>Meddelande</label><textarea id="kmsg"></textarea>
+<button class="go" onclick="sendContact()">Skicka</button>
+</div></div>
+<div class="ovenwrap" id="oven"><div class="oven">
+<div class="ovenstage">
+<div class="turtle" id="turtle"><svg viewBox="0 0 32 24" shape-rendering="crispEdges"><g class="held"><rect x="21" y="3" width="9" height="9" fill="#e8b03a"/><rect x="22" y="4" width="7" height="7" fill="#d9480f"/></g><rect x="8" y="10" width="12" height="8" fill="#1f6b38"/><rect x="9" y="11" width="10" height="6" fill="#2f9e4f"/><rect x="18" y="11" width="5" height="5" fill="#8bc34a"/><rect x="21" y="12" width="2" height="2" fill="#111"/><rect x="16" y="8" width="7" height="3" fill="#c41e3a"/><rect x="15" y="9" width="2" height="2" fill="#7a1424"/><g class="leg"><rect x="9" y="17" width="3" height="3" fill="#7cb342"/><rect x="16" y="17" width="3" height="3" fill="#7cb342"/></g></svg></div>
+<div class="flypie" id="flypie">🍕</div>
+<div class="ovenbox"><div class="embers"></div><div class="heat"></div><div class="pizza" id="ovenPizza">🍕</div><div class="door" id="door">🔥</div></div>
+</div>
+<h2 id="ovenTitle">Ugnen är het</h2>
+<p id="ovenSub">En sekund</p>
+<div id="ovenActs" style="display:none;margin-top:14px">
+<button class="go" id="ovenRing">Ring</button>
+<button class="go" style="background:#2a2a2c" onclick="ovenOpen()">Öppna pizzerian</button>
+<button class="go" style="background:#2a2a2c" onclick="ovenAgain()">En gång till</button>
+</div></div></div>
+<script src="app.js"></script>
 </body></html>
