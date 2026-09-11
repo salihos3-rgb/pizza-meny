@@ -67,13 +67,18 @@ header p{font-size:.72rem;opacity:.9}
 .ovenwrap{position:fixed;inset:0;z-index:50;display:none;align-items:center;justify-content:center;background:#050304}
 .ovenwrap.on{display:flex;animation:fadein .25s ease}
 @keyframes fadein{from{opacity:0}to{opacity:1}}
-.ovenbg{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 70%,rgba(255,90,20,.28),transparent 55%),radial-gradient(ellipse at 50% 100%,rgba(255,40,0,.18),transparent 50%)}
+.ovenbg{position:absolute;inset:0;pointer-events:none;background:
+  radial-gradient(ellipse at 50% 70%,rgba(255,90,20,.28),transparent 55%),
+  radial-gradient(ellipse at 50% 100%,rgba(255,40,0,.18),transparent 50%)}
 .spark{position:absolute;width:4px;height:4px;border-radius:50%;background:#ffc400;opacity:0;animation:spark 2.4s ease-in-out infinite}
 @keyframes spark{0%,100%{opacity:0;transform:translateY(12px) scale(.4)}40%{opacity:.9;transform:translateY(-28px) scale(1)}80%{opacity:0}}
 .oven{width:min(360px,90vw);text-align:center;position:relative;overflow:visible;z-index:2}
 .ovenstage{position:relative;height:250px;overflow:visible}
 .ovenbox{position:relative;height:220px;border-radius:18px 18px 12px 12px;background:linear-gradient(#4a2818,#1a0c0a 55%,#0c0605);border:4px solid #6a3a28;box-shadow:0 0 60px rgba(255,90,20,.45),0 0 120px rgba(255,60,0,.18),inset 0 -20px 40px rgba(0,0,0,.5);overflow:hidden}
-.embers{position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 30% 80%,rgba(255,90,20,.7),transparent 40%),radial-gradient(circle at 70% 85%,rgba(255,160,40,.5),transparent 38%),radial-gradient(circle at 50% 95%,rgba(255,220,80,.25),transparent 45%)}
+.embers{position:absolute;inset:0;pointer-events:none;background:
+  radial-gradient(circle at 30% 80%,rgba(255,90,20,.7),transparent 40%),
+  radial-gradient(circle at 70% 85%,rgba(255,160,40,.5),transparent 38%),
+  radial-gradient(circle at 50% 95%,rgba(255,220,80,.25),transparent 45%)}
 .heat{position:absolute;inset:0;background:linear-gradient(180deg,transparent 20%,rgba(255,140,40,.28) 100%);animation:shimmer 1.2s ease-in-out infinite alternate}
 @keyframes shimmer{from{opacity:.4}to{opacity:1}}
 .door{position:absolute;inset:8px 10px 28px;border-radius:10px;background:linear-gradient(#2c1614,#120808);border:2px solid #8a4a32;display:flex;align-items:center;justify-content:center;font-size:3.2rem;transform-origin:bottom;transition:transform .7s cubic-bezier(.2,.8,.2,1),opacity .4s;box-shadow:inset 0 8px 18px rgba(255,180,80,.15)}
@@ -123,6 +128,8 @@ header p{font-size:.72rem;opacity:.9}
   <div class="chips" id="recent"></div>
   <div class="chips">
     <button class="chip on" data-f="all" onclick="setF('all')">Alla</button>
+    <button class="chip" data-f="menu" onclick="setF('menu')">🍕 Meny</button>
+    <button class="chip" data-f="phone" onclick="setF('phone')">📞 Tel</button>
     <button class="chip" data-f="near" onclick="setF('near')">📍 Nära</button>
     <button class="chip" data-f="fav" onclick="setF('fav')">❤️ Mina</button>
   </div>
@@ -136,82 +143,96 @@ header p{font-size:.72rem;opacity:.9}
   <button onclick="openTip('saknas')">Saknas?</button>
   <button onclick="openOwner()">Äg din sida</button>
 </div>
-<div class="mask" id="mask"><div class="sheet">
-<button class="x" onclick="closeSheet()">✕</button>
-<h3 id="stitle">Äg</h3><p id="sdesc"></p>
-<input type="hidden" id="pid">
-<input class="hp" id="chp" tabindex="-1" autocomplete="off">
-<label>Namn</label><input id="cname" autocomplete="name">
-<label>Telefon</label><input id="cphone" type="tel" autocomplete="tel">
-<label>E-post</label><input id="cmail" type="email" autocomplete="email">
-<label>Sajt</label><input id="cweb" placeholder="https://" inputmode="url">
-<label class="check"><input type="checkbox" id="cboost"> Jag vill synas högre · 299 kr/mån</label>
-<button class="go" onclick="sendClaim()">Skicka</button>
-</div></div>
-<div class="mask" id="tipMask"><div class="sheet">
-<button class="x" onclick="document.getElementById('tipMask').classList.remove('on')">✕</button>
-<h3 id="tiptitle">Saknas en pizzeria?</h3>
-<p id="tipdesc">Efterkontroll mot egen sajt eller nummer.</p>
-<input type="hidden" id="tipkind" value="saknas"><input type="hidden" id="tippid">
-<input class="hp" id="thp" tabindex="-1" autocomplete="off">
-<label>Namn</label><input id="tname">
-<label>Stad</label><input id="tcity">
-<label>Telefon</label><input id="tphone" type="tel">
-<label>Sajt</label><input id="tweb" placeholder="https://">
-<label>Övrigt</label><textarea id="tnote" placeholder="Adress, meny-länk..."></textarea>
-<button class="go" onclick="sendTip()">Skicka</button>
-</div></div>
-<div class="mask" id="slumpMask"><div class="sheet">
-<button class="x" onclick="document.getElementById('slumpMask').classList.remove('on')">✕</button>
-<h3>Slumpa</h3>
-<p>Vi pekar. Du ringer.</p>
-<button class="slumpgo ovenbtn" onclick="ovenStart()">🔥 In i ugnen</button>
-<button class="slumpgo main" onclick="doSlump('any')">Valfri i Sverige</button>
-<button class="slumpgo dim" onclick="doSlump('city')">Här i staden</button>
-<button class="slumpgo dim" onclick="doSlump('fav')">Mina favoriter</button>
-</div></div>
-<div class="mask" id="meMask"><div class="sheet">
-<button class="x" onclick="document.getElementById('meMask').classList.remove('on')">✕</button>
-<h3>Ditt konto</h3>
-<p id="mehint">Namn och e-post. E-post krävs.</p>
-<label>Namn</label><input id="mename" placeholder="Ditt namn" autocomplete="name">
-<label>E-post</label><input id="memail" type="email" placeholder="namn@mejlen.se" autocomplete="email">
-<button class="go" onclick="saveMe()">Öppna konto</button>
-<div id="verifyBox" style="display:none;margin-top:12px">
-<p>Öppna verifieringslänken på den här telefonen. Vänner syns inte förrän det är gjort.</p>
-<button class="go" style="background:#2a2a2c" onclick="copyVerify()">Kopiera verifieringslänk</button>
+<div class="mask" id="mask">
+  <div class="sheet">
+    <button class="x" onclick="closeSheet()">✕</button>
+    <h3 id="stitle">Äg</h3>
+    <p id="sdesc"></p>
+    <input type="hidden" id="pid">
+    <input class="hp" id="chp" tabindex="-1" autocomplete="off">
+    <label>Namn</label><input id="cname" autocomplete="name">
+    <label>Telefon</label><input id="cphone" type="tel" autocomplete="tel">
+    <label>E-post</label><input id="cmail" type="email" autocomplete="email">
+    <label>Sajt</label><input id="cweb" placeholder="https://" inputmode="url">
+    <label class="check"><input type="checkbox" id="cboost"> Jag vill synas högre · 299 kr/mån</label>
+    <button class="go" onclick="sendClaim()">Skicka</button>
+  </div>
 </div>
-<div id="friendsBox" style="display:none;margin-top:16px">
-<h3>Vänner</h3>
-<p>Lägg till vänner. Båda måste acceptera. Då syns vad de beställde och var. Inget syns för andra.</p>
-<p>Själva listan öppnas när fler verifierade konton finns. Inget delas utan accept.</p>
+<div class="mask" id="tipMask">
+  <div class="sheet">
+    <button class="x" onclick="document.getElementById('tipMask').classList.remove('on')">✕</button>
+    <h3 id="tiptitle">Saknas en pizzeria?</h3>
+    <p id="tipdesc">Efterkontroll mot egen sajt eller nummer.</p>
+    <input type="hidden" id="tipkind" value="saknas">
+    <input type="hidden" id="tippid">
+    <input class="hp" id="thp" tabindex="-1" autocomplete="off">
+    <label>Namn</label><input id="tname">
+    <label>Stad</label><input id="tcity">
+    <label>Telefon</label><input id="tphone" type="tel">
+    <label>Sajt</label><input id="tweb" placeholder="https://">
+    <label>Övrigt</label><textarea id="tnote" placeholder="Adress, meny-länk..."></textarea>
+    <button class="go" onclick="sendTip()">Skicka</button>
+  </div>
 </div>
-<p style="margin-top:14px">Lägg till på hemskärm: Dela → Lägg till på hemskärm.</p>
-<button class="go" style="background:#2a2a2c" onclick="openContact()">Kontakt</button>
-</div></div>
-<div class="mask" id="helpMask"><div class="sheet">
-<button class="x" onclick="document.getElementById('helpMask').classList.remove('on')">✕</button>
-<h3 id="helptitle">Pizza Meny</h3>
-<div id="helpApp">
-<p>En lista. Pizzeria, stad, nummer, karta och meny-länk. Sök. Slumpa. Ugnen väljer.</p>
-<p>Konto gör favoriter lättare att spara och se. Med verifierad e-post kan du lägga till vänner och se vad de beställde och var — bara om båda accepterat. Vänner syns inte alls innan kontot är verifierat med länken i mejlen.</p>
+<div class="mask" id="slumpMask">
+  <div class="sheet">
+    <button class="x" onclick="document.getElementById('slumpMask').classList.remove('on')">✕</button>
+    <h3>Slumpa</h3>
+    <p>Vi pekar. Du ringer.</p>
+    <button class="slumpgo ovenbtn" onclick="ovenStart()">🔥 In i ugnen</button>
+    <button class="slumpgo main" onclick="doSlump('any')">Valfri i Sverige</button>
+    <button class="slumpgo dim" onclick="doSlump('city')">Här i staden</button>
+    <button class="slumpgo dim" onclick="doSlump('fav')">Mina favoriter</button>
+  </div>
 </div>
-<div id="helpOwner" style="display:none">
-<p>Öppna pizzerian. Tryck Äg. Skriv namn och nummer.</p>
-<p>Vill synas högre? Kryssa i rutan. <span class="price">299 kr/mån</span>. Villkor när ni tecknar.</p>
+<div class="mask" id="meMask">
+  <div class="sheet">
+    <button class="x" onclick="document.getElementById('meMask').classList.remove('on')">✕</button>
+    <h3>Ditt konto</h3>
+    <p id="mehint">Namn och e-post. E-post krävs.</p>
+    <label>Namn</label><input id="mename" placeholder="Ditt namn" autocomplete="name">
+    <label>E-post</label><input id="memail" type="email" placeholder="namn@mejlen.se" autocomplete="email">
+    <button class="go" onclick="saveMe()">Öppna konto</button>
+    <div id="verifyBox" style="display:none;margin-top:12px">
+      <p>Öppna verifieringslänken på den här telefonen. Vänner syns inte förrän det är gjort.</p>
+      <button class="go" style="background:#2a2a2c" onclick="copyVerify()">Kopiera verifieringslänk</button>
+    </div>
+    <div id="friendsBox" style="display:none;margin-top:16px">
+      <h3>Vänner</h3>
+      <p>Lägg till vänner. Båda måste acceptera. Då syns vad de beställde och var. Inget syns för andra.</p>
+      <p>Själva listan öppnas när fler verifierade konton finns. Inget delas utan accept.</p>
+    </div>
+    <p style="margin-top:14px">Lägg till på hemskärm: Dela → Lägg till på hemskärm.</p>
+    <button class="go" style="background:#2a2a2c" onclick="openContact()">Kontakt</button>
+  </div>
 </div>
-<button class="go" onclick="document.getElementById('helpMask').classList.remove('on')">Ok</button>
-</div></div>
-<div class="mask" id="contactMask"><div class="sheet">
-<button class="x" onclick="document.getElementById('contactMask').classList.remove('on')">✕</button>
-<h3>Kontakt</h3>
-<p>Pizzeria, press eller fel i listan.</p>
-<input class="hp" id="hp" tabindex="-1" autocomplete="off">
-<label>Namn</label><input id="kname">
-<label>E-post</label><input id="kmail" type="email">
-<label>Meddelande</label><textarea id="kmsg"></textarea>
-<button class="go" onclick="sendContact()">Skicka</button>
-</div></div>
+<div class="mask" id="helpMask">
+  <div class="sheet">
+    <button class="x" onclick="document.getElementById('helpMask').classList.remove('on')">✕</button>
+    <h3 id="helptitle">Pizza Meny</h3>
+    <div id="helpApp">
+      <p>En lista. Pizzeria, stad, nummer, karta och meny-länk. Sök. Slumpa. Ugnen väljer.</p>
+      <p>Konto gör favoriter lättare att spara och se. Med verifierad e-post kan du lägga till vänner och se vad de beställde och var — bara om båda accepterat. Vänner syns inte alls innan kontot är verifierat med länken i mejlen.</p>
+    </div>
+    <div id="helpOwner" style="display:none">
+      <p>Öppna pizzerian. Tryck Äg. Skriv namn och nummer.</p>
+      <p>Vill synas högre? Kryssa i rutan. <span class="price">299 kr/mån</span>. Villkor när ni tecknar.</p>
+    </div>
+    <button class="go" onclick="document.getElementById('helpMask').classList.remove('on')">Ok</button>
+  </div>
+</div>
+<div class="mask" id="contactMask">
+  <div class="sheet">
+    <button class="x" onclick="document.getElementById('contactMask').classList.remove('on')">✕</button>
+    <h3>Kontakt</h3>
+    <p>Pizzeria, press eller fel i listan.</p>
+    <input class="hp" id="hp" tabindex="-1" autocomplete="off">
+    <label>Namn</label><input id="kname">
+    <label>E-post</label><input id="kmail" type="email">
+    <label>Meddelande</label><textarea id="kmsg"></textarea>
+    <button class="go" onclick="sendContact()">Skicka</button>
+  </div>
+</div>
 <div class="ovenwrap" id="oven">
   <div class="ovenbg"></div>
   <span class="spark" style="left:18%;bottom:22%;animation-delay:.2s"></span>
@@ -265,6 +286,6 @@ header p{font-size:.72rem;opacity:.9}
     </div>
   </div>
 </div>
-<script src="app.js?v=20260911h"></script>
+<script src="app.js?v=20260911k"></script>
 </body>
 </html>
