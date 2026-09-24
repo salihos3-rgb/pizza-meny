@@ -1,0 +1,1 @@
+full index is 23kb on disk; next message restores it
