@@ -1,13 +1,14 @@
 // Build step (runs on Vercel): copies the app and generates one static, indexable page
 // per town (/stad/<ort>) and per pizzeria (/p/<namn>-<id8>), plus sitemap.xml and robots.txt.
 // If the database can't be reached, the app is still built (without the SEO pages) so a deploy never breaks.
-import { mkdir, writeFile, copyFile, readFile, rm } from "node:fs/promises";
+import { mkdir, writeFile, copyFile, readFile, rm, cp } from "node:fs/promises";
 
 const SITE = "https://pizza-meny.vercel.app";
 const SB = "https://cmmnqckszwgsvaaawouw.supabase.co";
 const KEY = (await readFile("app.js", "utf8")).match(/const KEY="([^"]+)"/)[1]; // public anon key, same as the app
 const OUT = "dist";
-const STATIC = ["index.html", "app.js", "legal.html", "manifest.json", "icon.svg"];
+const STATIC = ["index.html", "app.js", "legal.html", "manifest.json", "icon.svg", "sw.js"];
+const STATIC_DIRS = ["img"];
 const LEAK = ["københavn", "kobenhavn", "copenhagen", "oslo", "helsinki", "vaasa", "nykarleby"];
 
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => "&#" + c.charCodeAt(0) + ";");
@@ -16,6 +17,15 @@ const slugify = (s) => String(s || "").toLowerCase().replace(/[åä]/g, "a").rep
 const pageSlug = (p) => slugify(p.name) + "-" + String(p.id).slice(0, 8);
 const safeHttp = (u) => { u = String(u || "").trim(); return /^https?:\/\//i.test(u) && !/[\s<]/.test(u) ? u : ""; };
 const safeTel = (t) => { const d = String(t || "").replace(/[^\d+]/g, ""); return d.length >= 7 ? d : ""; };
+const AREA3 = ["010","011","013","016","018","019","020","021","023","026","031","033","035","036","040","042","044","046","054","060","063","090","070","071","072","073","074","076","077","078","079"];
+function fmtPhone(raw) {
+  let d = String(raw || "").replace(/[^\d+]/g, ""); if (!d) return "";
+  if (d.startsWith("+46")) d = "0" + d.slice(3); else if (d.startsWith("0046")) d = "0" + d.slice(4); else if (d.startsWith("46") && d.length >= 10) d = "0" + d.slice(2);
+  if (!/^0\d{6,10}$/.test(d)) return String(raw || "").trim();
+  const ac = d.startsWith("08") ? "08" : AREA3.includes(d.slice(0, 3)) ? d.slice(0, 3) : d.slice(0, 4);
+  const n = d.slice(ac.length); const g = { 5: [3, 2], 6: [2, 2, 2], 7: [3, 2, 2], 8: [3, 3, 2] }[n.length];
+  if (!g) return ac + "-" + n; let i = 0; return ac + "-" + g.map((k) => { const part = n.slice(i, i + k); i += k; return part; }).join(" ");
+}
 const hasCoords = (p) => !!(p.lat && p.lon && !p.coords_approx);
 const mapUrl = (p) => hasCoords(p)
   ? `https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lon}`
@@ -59,6 +69,7 @@ const shell = ({ title, desc, canonical, body, jsonld }) => `<!DOCTYPE html>
 <meta name="theme-color" content="#c41e3a"><link rel="icon" href="/icon.svg" type="image/svg+xml"><link rel="manifest" href="/manifest.json">
 <meta property="og:type" content="website"><meta property="og:title" content="${esc(title)}"><meta property="og:description" content="${esc(desc)}">
 <meta property="og:url" content="${esc(canonical)}"><meta property="og:locale" content="sv_SE"><meta property="og:site_name" content="Pizza Meny">
+<meta property="og:image" content="${SITE}/img/og.png"><meta name="twitter:card" content="summary_large_image"><link rel="apple-touch-icon" href="/img/apple-touch-icon.png">
 ${jsonld ? `<script type="application/ld+json">${JSON.stringify(jsonld).replace(/</g, "\\u003c")}</script>` : ""}
 <style>${CSS}</style></head><body>
 <header><a href="/">🍕 Pizza Meny</a></header>
@@ -79,20 +90,20 @@ function pizzeriaPage(p, townSlug, townCount) {
   const jsonld = {
     "@context": "https://schema.org", "@type": "Restaurant", name: p.name, servesCuisine: "Pizza", url,
     address: { "@type": "PostalAddress", addressLocality: p.city, addressCountry: "SE" },
-    ...(tel ? { telephone: p.phone } : {}), ...(web ? { hasMenu: web } : {}),
+    ...(tel ? { telephone: fmtPhone(p.phone) } : {}), ...(web ? { hasMenu: web } : {}),
     ...(hasCoords(p) ? { geo: { "@type": "GeoCoordinates", latitude: p.lat, longitude: p.lon } } : {}),
   };
-  const facts = [tel ? `Telefon ${esc(p.phone)}` : "", web ? "meny online" : ""].filter(Boolean).join(", ");
+  const facts = [tel ? `Telefon ${esc(fmtPhone(p.phone))}` : "", web ? "meny online" : ""].filter(Boolean).join(", ");
   return shell({
     title: `${p.name} i ${p.city} – nummer, karta och meny | Pizza Meny`,
-    desc: `${p.name}, pizzeria i ${p.city}.${tel ? " Ring " + p.phone + "." : ""}${web ? " Se menyn." : ""} Karta och vägbeskrivning.`,
+    desc: `${p.name}, pizzeria i ${p.city}.${tel ? " Ring " + fmtPhone(p.phone) + "." : ""}${web ? " Se menyn." : ""} Karta och vägbeskrivning.`,
     canonical: url, jsonld,
     body: `<p class="crumb"><a href="/stad/">Alla orter</a> › <a href="/stad/${townSlug}">${esc(p.city)}</a></p>
 <h1>${esc(p.name)}</h1><p class="meta">Pizzeria i ${esc(p.city)}${facts ? " · " + facts : ""}</p>
 ${desc ? `<p>${esc(desc)}</p>` : ""}${buttons(p)}
 <div class="row"><a class="btn app" href="/?p=${esc(p.id)}">Öppna i Pizza Meny</a></div>
 ${hasCoords(p) ? "" : `<p class="meta" style="margin-top:12px">Exakt adress saknas, kartan söker på namnet.</p>`}
-<h2>Äger du ${esc(p.name)}?</h2><p>Öppna pizzerian i appen och tryck Äg. Vi ringer och bekräftar, sedan kan du rätta uppgifter och meny.</p>
+<h2>Äger du ${esc(p.name)}?</h2><p>Öppna pizzerian i appen och tryck Äg. Vi ringer och bekräftar, och hjälper dig sedan att rätta uppgifter och lägga in menyn.</p>
 <p><a href="/stad/${townSlug}">Fler pizzerior i ${esc(p.city)} (${townCount})</a></p>`,
   });
 }
@@ -129,6 +140,9 @@ const score = (p) => (p.is_sponsored ? 100 : 0) + (safeHttp(p.menu_url) ? 2 : 0)
 await rm(OUT, { recursive: true, force: true });
 await mkdir(OUT, { recursive: true });
 for (const f of STATIC) await copyFile(f, `${OUT}/${f}`);
+for (const d of STATIC_DIRS) await cp(d, `${OUT}/${d}`, { recursive: true });
+await writeFile(`${OUT}/404.html`, shell({ title: "Sidan finns inte | Pizza Meny", desc: "Sidan finns inte.", canonical: SITE + "/",
+  body: `<h1>Sidan finns inte</h1><p>Pizzerian kan ha stängt eller flyttats.</p><div class="row"><a class="btn app" href="/">Till Pizza Meny</a><a class="btn" href="/stad/">Alla orter</a></div>` }));
 
 const today = new Date().toISOString().slice(0, 10);
 const urls = [{ loc: `${SITE}/`, pri: "1.0" }];

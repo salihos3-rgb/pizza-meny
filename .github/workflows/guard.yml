@@ -21,4 +21,6 @@ jobs:
           ! grep -F -n PLACEHOLDER index.html app.js
           ! grep -F -n RESTORE_FROM_LIVE index.html app.js
           node --check app.js
+          node --check build.mjs
+          node --check sw.js
           echo OK

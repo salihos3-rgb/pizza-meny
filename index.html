@@ -11,7 +11,7 @@
 <meta name="theme-color" content="#c41e3a">
 <link rel="manifest" href="/manifest.json">
 <link rel="icon" href="/icon.svg" type="image/svg+xml">
-<link rel="apple-touch-icon" href="/icon.svg">
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png">
 <meta name="description" content="Hitta pizzeria nära dig i hela Sverige. Telefonnummer, karta och meny på ett ställe. Slumpa kvällens pizza.">
 <link rel="canonical" href="https://pizza-meny.vercel.app/">
 <meta property="og:type" content="website">
@@ -19,6 +19,9 @@
 <meta property="og:description" content="Nummer, karta och meny till pizzerior i hela Sverige.">
 <meta property="og:url" content="https://pizza-meny.vercel.app/">
 <meta property="og:locale" content="sv_SE">
+<meta property="og:image" content="https://pizza-meny.vercel.app/img/og.png">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://cmmnqckszwgsvaaawouw.supabase.co; img-src 'self' data:; font-src 'self'; frame-ancestors 'none'; base-uri 'self'; object-src 'none'; form-action 'self'">
 <link rel="preconnect" href="https://cmmnqckszwgsvaaawouw.supabase.co" crossorigin>
 <style>
@@ -85,6 +88,7 @@ header p{font-size:.72rem;opacity:.9}
 .star{background:0;border:0;color:#ffc400;font-size:1.5rem;padding:2px 3px}
 .act.wide{display:block;width:100%;margin-top:8px;text-align:center;text-decoration:none;padding:13px 0;border-radius:14px;font-weight:800;font-size:.88rem}
 .desc.small{font-size:.78rem;margin-top:10px}
+.desc.phone{font-size:1rem}.desc.phone a{color:#f2f2f2;text-decoration:none;font-weight:700}
 .foot{margin:26px 0 0;font-size:.78rem;color:var(--muted);text-align:center;line-height:1.7}
 .foot a{color:#ff8a9a}
 button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid #ffc400;outline-offset:2px}
@@ -152,6 +156,7 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid #ffc4
     <input id="q" type="search" aria-label="Sök stad eller pizzeria" placeholder="Skriv stad eller pizzeria..." oninput="onType()" onchange="rememberQ()" enterkeyhint="search" autocomplete="off">
     <button class="clear" id="clr" onclick="wipe()" aria-label="Rensa sökningen">✕</button>
   </div>
+  <div class="chips" id="sugg"></div>
   <div class="chips" id="recent"></div>
   <div class="chips">
     <button class="chip on" data-f="all" onclick="setF('all')">Alla</button>
@@ -308,7 +313,7 @@ window.addEventListener("error",function(){
   if(s)s.textContent="Ladda om sidan.";
 });
 </script>
-<script src="app.js?v=20261030b"></script>
+<script src="app.js?v=20261030c"></script>
 <script defer src="/_vercel/insights/script.js"></script>
 <script>
 setTimeout(function(){

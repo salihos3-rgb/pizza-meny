@@ -20,6 +20,16 @@ function uuidOk(id){return /^[0-9a-f-]{8,36}$/i.test(String(id||""))}
 function tooSoon(key,ms){let last=0;try{last=+localStorage.getItem(key)||0}catch(e){}if(Date.now()-last<ms)return true;try{localStorage.setItem(key,String(Date.now()))}catch(e){}return false}
 function lsGet(k,d){try{const v=JSON.parse(localStorage.getItem(k)||"null");return v==null?d:v}catch(e){return d}}
 function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+function norm(s){return String(s||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/\s+/g," ").trim()}
+const AREA3=["010","011","013","016","018","019","020","021","023","026","031","033","035","036","040","042","044","046","054","060","063","090","070","071","072","073","074","076","077","078","079"];
+function fmtPhone(raw){
+  let d=String(raw||"").replace(/[^\d+]/g,"");if(!d)return"";
+  if(d.startsWith("+46"))d="0"+d.slice(3);else if(d.startsWith("0046"))d="0"+d.slice(4);else if(d.startsWith("46")&&d.length>=10)d="0"+d.slice(2);
+  if(!/^0\d{6,10}$/.test(d))return String(raw||"").trim();
+  const ac=d.startsWith("08")?"08":AREA3.includes(d.slice(0,3))?d.slice(0,3):d.slice(0,4);
+  const n=d.slice(ac.length);const g={5:[3,2],6:[2,2,2],7:[3,2,2],8:[3,3,2]}[n.length];
+  if(!g)return ac+"-"+n;let i=0;return ac+"-"+g.map(k=>{const part=n.slice(i,i+k);i+=k;return part}).join(" ");
+}
 function slugify(s){return String(s||"").toLowerCase().replace(/[åä]/g,"a").replace(/ö/g,"o").replace(/é/g,"e").replace(/ü/g,"u").replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"").slice(0,60)}
 function pageSlug(p){return slugify(p.name)+"-"+String(p.id).slice(0,8)}
 function goodDesc(d){d=String(d||"").trim();if(!d)return"";if(/Källa:\s*OpenStreetMap/i.test(d))return"";if(/^(Pizza|Pizzeria|Klassisk meny) i [^.]+\.$/.test(d))return"";if(d==="Officiell kedja.")return"";return d}
@@ -72,26 +82,35 @@ async function load(){
 }
 
 /* ---------- list ---------- */
-function drawCities(){document.getElementById("cities").innerHTML=`<button class="city ${!city?"on":""}" onclick="setCity('')">Alla städer</button>`+TOP.map(c=>`<button class="city ${city===c?"on":""}" onclick='setCity(${aj(c)})'>${esc(c)}</button>`).join("")}
-function setCity(c){city=String(c||"");document.getElementById("q").value=city;lsSet("pm_city_v2",city);if(city)rememberQ();syncClear();drawCities();render()}
+function drawCities(){const cn=norm(city);document.getElementById("cities").innerHTML=`<button class="city ${!city?"on":""}" onclick="setCity('')">Alla städer</button>`+TOP.map(c=>`<button class="city ${cn===norm(c)?"on":""}" onclick='setCity(${aj(c)})'>${esc(c)}</button>`).join("")}
+function setCity(c){city=String(c||"");const sg=document.getElementById("sugg");if(sg)sg.innerHTML="";document.getElementById("q").value=city;lsSet("pm_city_v2",city);if(city)rememberQ();syncClear();drawCities();render()}
 function setF(f){filter=f;document.querySelectorAll("[data-f]").forEach(c=>{const on=c.dataset.f===f;c.classList.toggle("on",on);c.setAttribute("aria-pressed",on?"true":"false")});if(f==="near"&&!me){askNear();return}render()}
-function onType(){syncClear();clearTimeout(typeT);typeT=setTimeout(()=>{const v=document.getElementById("q").value.trim();city=TOP.find(c=>c.toLowerCase()===v.toLowerCase())||"";lsSet("pm_city_v2",city);drawCities();render()},80)}
+function onType(){syncClear();clearTimeout(typeT);typeT=setTimeout(()=>{const v=norm(document.getElementById("q").value);const t=towns().get(v);city=t?t.name:"";lsSet("pm_city_v2",city);drawCities();drawSugg();render()},80)}
 function wipe(){document.getElementById("q").value="";city="";lsSet("pm_city_v2","");syncClear();drawCities();render();document.getElementById("q").focus()}
 function syncClear(){document.getElementById("clr").classList.toggle("on",!!(document.getElementById("q").value||city))}
+let _towns=null,_townsN=-1;
+function towns(){if(_townsN!==all.length){const m=new Map();all.forEach(p=>{if(p.city){const k=norm(p.city);const t=m.get(k)||{name:p.city,n:0};t.n++;m.set(k,t)}});_towns=m;_townsN=all.length}return _towns}
+function townSet(){return new Set(towns().keys())}
+function drawSugg(){
+  const el=document.getElementById("sugg");if(!el)return;
+  const q=norm(document.getElementById("q").value);
+  if(q.length<2||townSet().has(q)){el.innerHTML="";return}
+  const hits=[...towns().entries()].filter(([k])=>k.startsWith(q)||k.includes(" "+q)).sort((a,b)=>b[1].n-a[1].n).slice(0,6);
+  el.innerHTML=hits.map(([k,t])=>`<button class="chip" onclick='setCity(${aj(t.name)})'>📍 ${esc(t.name)} <span style="opacity:.6">${t.n}</span></button>`).join("");
+}
 function menuOf(id){return items.filter(x=>x.pizzeria_id===id)}
 function score(p){return (p.is_sponsored?100:0)+(p.menu_url?2:0)+(p.phone?2:0)+(hasCoords(p)?1:0)}
 function getList(){
-  const q=document.getElementById("q").value.toLowerCase().trim();
-  const cities=new Set(all.map(p=>(p.city||"").toLowerCase()).filter(Boolean));
-  const exactCity=(city||"").toLowerCase()||(cities.has(q)?q:"");
+  const q=norm(document.getElementById("q").value);
+  const exactCity=norm(city)||(townSet().has(q)?q:"");
   let list=all.filter(p=>{
     if(filter==="fav"&&!isFav(p.id))return false;
     if(filter==="menu"&&!p.menu_url)return false;
     if(filter==="phone"&&!p.phone)return false;
     if(filter==="near")return !!(hasCoords(p)&&me);
-    if(exactCity)return (p.city||"").toLowerCase()===exactCity;
+    if(exactCity)return norm(p.city)===exactCity;
     if(!q)return true;
-    return (p.name+" "+(p.city||"")).toLowerCase().includes(q)});
+    return norm(p.name+" "+(p.city||"")).includes(q)});
   if(filter==="near"&&me)return list.map(p=>({p,d:km(me.lat,me.lon,p.lat,p.lon)})).filter(x=>x.d<=25).sort((a,b)=>a.d-b.d).map(x=>x.p);
   return [...list].sort((a,b)=>score(b)-score(a)||(a.name||"").localeCompare(b.name||"","sv"));
 }
@@ -104,6 +123,7 @@ function cardHtml(p,full){
   `<button class="namebtn" onclick='openDetail(${idj})'><h2>${esc(p.name)}</h2></button>`+
   `<div class="meta"><span>${esc(p.city||"")}</span>${d?"<span>"+esc(d)+"</span>":""}${web?"<span class='badge'>Meny</span>":""}${tel?"<span class='badge'>Tel</span>":""}${m.length?"<span class='badge'>Lista</span>":""}${p.is_sponsored?"<span class='badge s'>Sponsrad</span>":""}</div>`+
   (full?`<div class="stars" role="group" aria-label="Ditt betyg, sparas bara i din telefon">${[1,2,3,4,5].map(n=>`<button class="star" onclick='setRate(${idj},${n})' aria-label="${n} av 5">${n<=my?"★":"☆"}</button>`).join("")}</div>`:"")+
+  (full&&tel?`<p class="desc phone">📞 <a href="tel:${esc(tel)}">${esc(fmtPhone(p.phone))}</a></p>`:"")+
   (full&&desc?`<p class="desc">${esc(desc)}</p>`:"")+
   `<div class="row">${tel?`<a class="ring" href="tel:${esc(tel)}">📞 Ring</a>`:""}<a class="map" target="_blank" rel="noopener noreferrer" href="${esc(mapUrl(p))}">📍 Karta</a>${web?`<a class="meny" target="_blank" rel="noopener noreferrer" href="${esc(web)}">🍕 Meny</a>`:""}<button class="act claim" onclick='openClaim(${idj},${namej},${phonej})'>Äg</button></div>`+
   (full?`<button class="act claim wide" onclick='openTip("syns_hogre",${idj},${namej},${cityj})'>Syns högre · 299 kr/mån</button><button class="act claim wide" onclick='shareP(${idj})'>Dela</button><a class="act claim wide" href="/p/${esc(pageSlug(p))}">Egen sida för ${esc(p.name)}</a>`:"")+
@@ -204,7 +224,7 @@ function postRow(table,body){return fetch(SB+"/rest/v1/"+table,{method:"POST",he
 function openClaim(id,name,listed){
   document.getElementById("pid").value=id;
   document.getElementById("stitle").textContent="Äg "+name;
-  document.getElementById("sdesc").textContent="Är du ägare? Skicka in så ringer vi pizzerian och bekräftar. Sedan kan du rätta uppgifter och meny.";
+  document.getElementById("sdesc").textContent="Är du ägare? Skicka in så ringer vi pizzerian och bekräftar. Därefter hjälper vi dig att rätta uppgifter och lägga in menyn.";
   ["cname","cmail","cweb","chp"].forEach(i=>{const el=document.getElementById(i);if(el)el.value=""});
   document.getElementById("cphone").value=listed||"";
   const boost=document.getElementById("cboost");if(boost)boost.checked=false;
@@ -264,3 +284,4 @@ async function sendContact(){
 try{["pm_me","pm_friends","pm_eats","pm_sess","pm_city"].forEach(k=>localStorage.removeItem(k))}catch(e){}
 try{if(/access_token=/.test(location.hash))history.replaceState({},"",location.pathname+location.search)}catch(e){}
 load();
+if("serviceWorker" in navigator&&location.protocol==="https:")window.addEventListener("load",()=>{navigator.serviceWorker.register("/sw.js").catch(()=>{})});
