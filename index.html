@@ -2,17 +2,23 @@
 <html lang="sv">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Pizza Meny">
 <meta name="referrer" content="strict-origin-when-cross-origin">
-<title>Pizza Meny</title>
+<title>Pizza Meny – pizzerior i Sverige, nummer och meny</title>
 <meta name="theme-color" content="#c41e3a">
 <link rel="manifest" href="/manifest.json">
 <link rel="icon" href="/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/icon.svg">
-<meta name="description" content="Hitta pizzeria, nummer och meny. Slumpa. Spara favoriter. Sverige.">
+<meta name="description" content="Hitta pizzeria nära dig i hela Sverige. Telefonnummer, karta och meny på ett ställe. Slumpa kvällens pizza.">
+<link rel="canonical" href="https://pizza-meny.vercel.app/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Pizza Meny – pizzerior i Sverige">
+<meta property="og:description" content="Nummer, karta och meny till pizzerior i hela Sverige.">
+<meta property="og:url" content="https://pizza-meny.vercel.app/">
+<meta property="og:locale" content="sv_SE">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://cmmnqckszwgsvaaawouw.supabase.co; img-src 'self' data:; font-src 'self'; frame-ancestors 'none'; base-uri 'self'; object-src 'none'; form-action 'self'">
 <link rel="preconnect" href="https://cmmnqckszwgsvaaawouw.supabase.co" crossorigin>
 <style>
@@ -76,6 +82,13 @@ header p{font-size:.72rem;opacity:.9}
 .item{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--line);font-size:.95rem}
 .price{color:#ffc400;font-weight:800}
 .hp{position:absolute;left:-9999px;height:0;width:0;opacity:0}
+.star{background:0;border:0;color:#ffc400;font-size:1.5rem;padding:2px 3px}
+.act.wide{display:block;width:100%;margin-top:8px;text-align:center;text-decoration:none;padding:13px 0;border-radius:14px;font-weight:800;font-size:.88rem}
+.desc.small{font-size:.78rem;margin-top:10px}
+.foot{margin:26px 0 0;font-size:.78rem;color:var(--muted);text-align:center;line-height:1.7}
+.foot a{color:#ff8a9a}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid #ffc400;outline-offset:2px}
+.go:disabled{opacity:.5}
 .ovenwrap{position:fixed;inset:0;z-index:50;display:none;align-items:center;justify-content:center;background:#050304}
 .ovenwrap.on{display:flex;animation:fadein .25s ease}
 .ovenx{position:fixed;top:max(12px,env(safe-area-inset-top));right:14px;z-index:61;width:44px;height:44px;border:0;border-radius:22px;background:rgba(255,255,255,.2);color:#fff;font-size:1.45rem;font-weight:800;line-height:1}
@@ -129,7 +142,6 @@ header p{font-size:.72rem;opacity:.9}
     <div><h1 id="htitle">🍕 Pizza Meny</h1><p id="sub">Nummer. Meny. Klart.</p></div>
   </div>
   <div class="acts">
-    <button class="iconbtn" onclick="openMe()">Jag</button>
     <button class="iconbtn hot" onclick="openSlump()">Slumpa</button>
     <button class="iconbtn q" onclick="openHelp()" aria-label="Om appen">?</button>
   </div>
@@ -137,8 +149,8 @@ header p{font-size:.72rem;opacity:.9}
 <div class="page on" id="listPage">
 <div class="wrap">
   <div class="search">
-    <input id="q" type="search" placeholder="Skriv stad..." oninput="onType()" onchange="rememberQ()" enterkeyhint="search" autocomplete="off">
-    <button class="clear" id="clr" onclick="wipe()">✕</button>
+    <input id="q" type="search" aria-label="Sök stad eller pizzeria" placeholder="Skriv stad eller pizzeria..." oninput="onType()" onchange="rememberQ()" enterkeyhint="search" autocomplete="off">
+    <button class="clear" id="clr" onclick="wipe()" aria-label="Rensa sökningen">✕</button>
   </div>
   <div class="chips" id="recent"></div>
   <div class="chips">
@@ -151,6 +163,7 @@ header p{font-size:.72rem;opacity:.9}
   <div class="cities" id="cities"></div>
   <div class="count" id="count"></div>
   <div id="list"></div>
+  <p class="foot"><a href="/stad/">Alla orter</a> · <a href="/legal.html">Villkor och integritet</a><br>Kartdata och pizzerior delvis från <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a></p>
 </div>
 </div>
 <div class="page" id="detailPage"><div class="wrap" id="detail"></div></div>
@@ -160,7 +173,7 @@ header p{font-size:.72rem;opacity:.9}
 </div>
 <div class="mask" id="mask">
   <div class="sheet">
-    <button class="x" onclick="closeSheet()">✕</button>
+    <button class="x" onclick="closeSheet()" aria-label="Stäng">✕</button>
     <h3 id="stitle">Äg</h3>
     <p id="sdesc"></p>
     <input type="hidden" id="pid">
@@ -169,13 +182,13 @@ header p{font-size:.72rem;opacity:.9}
     <label>Telefon</label><input id="cphone" type="tel" autocomplete="tel">
     <label>E-post</label><input id="cmail" type="email" autocomplete="email">
     <label>Sajt</label><input id="cweb" placeholder="https://" inputmode="url">
-    <label class="check"><input type="checkbox" id="cboost"> Jag vill synas högre · 299 kr/mån</label>
-    <button class="go" onclick="sendClaim()">Skicka</button>
+    <label class="check"><input type="checkbox" id="cboost"> Jag är intresserad av att synas högre (299 kr/mån, inget köp nu)</label>
+    <button class="go" id="claimGo" onclick="sendClaim()">Skicka</button>
   </div>
 </div>
 <div class="mask" id="tipMask">
   <div class="sheet">
-    <button class="x" onclick="document.getElementById('tipMask').classList.remove('on')">✕</button>
+    <button class="x" onclick="closeMask('tipMask')" aria-label="Stäng">✕</button>
     <h3 id="tiptitle">Saknas en pizzeria?</h3>
     <p id="tipdesc">Efterkontroll mot egen sajt eller nummer.</p>
     <input type="hidden" id="tipkind" value="saknas">
@@ -191,93 +204,40 @@ header p{font-size:.72rem;opacity:.9}
 </div>
 <div class="mask" id="slumpMask">
   <div class="sheet">
-    <button class="x" onclick="document.getElementById('slumpMask').classList.remove('on')">✕</button>
+    <button class="x" onclick="closeMask('slumpMask')" aria-label="Stäng">✕</button>
     <h3>Slumpa</h3>
     <p>Vi pekar. Du ringer.</p>
     <button class="slumpgo ovenbtn" onclick="ovenStart()">🔥 In i ugnen</button>
     <button class="slumpgo main" onclick="doSlump('any')">Valfri i Sverige</button>
     <button class="slumpgo dim" onclick="doSlump('city')">Här i staden</button>
+    <button class="slumpgo dim" onclick="doSlump('menu')">Bara med meny</button>
     <button class="slumpgo dim" onclick="doSlump('fav')">Mina favoriter</button>
-  </div>
-</div>
-<div class="mask" id="meMask" onclick="if(event.target===this)this.classList.remove('on')">
-  <button class="mex" onclick="document.getElementById('meMask').classList.remove('on')" aria-label="Stäng">✕</button>
-  <div class="sheet sheetcol" id="meSheet">
-    <div class="sheethead">
-      <div class="top">
-        <h3>Jag</h3>
-        <button class="x" onclick="document.getElementById('meMask').classList.remove('on')">✕</button>
-      </div>
-      <p id="mehint" style="margin:6px 0 0">Tagg och e-post. E-post krävs.</p>
-      <p id="mebox" style="margin:6px 0 0"></p>
-    </div>
-    <div class="sheetbody">
-    <div id="meGuest">
-      <label>Tagg / alias</label><input id="mename" placeholder="t.ex. stekarn" autocomplete="username" maxlength="20">
-      <label>E-post</label><input id="memail" type="email" placeholder="namn@mejlen.se" autocomplete="email">
-      <button class="go" onclick="saveMe()">Öppna konto</button>
-      <div id="verifyBox" style="display:none;margin-top:12px">
-        <p>Öppna verifieringslänken på den här telefonen. Vänner syns inte förrän det är gjort.</p>
-        <button class="go" style="background:#2a2a2c" onclick="copyVerify()">Kopiera verifieringslänk</button>
-      </div>
-    </div>
-    <div id="meIn" style="display:none">
-      <label>Byt tagg</label>
-      <input id="retag" placeholder="ny tagg" maxlength="20" autocomplete="off">
-      <button class="go" style="background:#2a2a2c" onclick="changeTagg()">Spara tagg</button>
-      <div id="friendsBox" style="margin-top:18px">
-        <h3>Vänner</h3>
-        <p>Sök på tagg. Båda måste acceptera. Sen syns vad de tog och var — bara för er två.</p>
-        <label>Sök tagg</label>
-        <input id="fsearch" placeholder="t.ex. degnisse" maxlength="20">
-        <button class="go" onclick="sendFriend()">Skicka förfrågan</button>
-        <div id="fin"></div>
-        <div id="fout"></div>
-        <div id="fok"></div>
-        <div id="feats"></div>
-      </div>
-      <div class="danger">
-        <h3>Konto</h3>
-        <p>Radera konto tar bort tagg, vänner och den här telefonens inloggning. Listan med pizzerior stannar.</p>
-        <div id="del1">
-          <button class="go" style="background:#3a1518" onclick="askDel()">Radera konto</button>
-        </div>
-        <div id="del2" style="display:none">
-          <p>Skriv din tagg för att bekräfta.</p>
-          <input id="delconfirm" placeholder="din tagg" maxlength="20">
-          <button class="go" style="background:#c41e3a" onclick="doDel()">Ja, radera för alltid</button>
-          <button class="go" style="background:#2a2a2c" onclick="cancelDel()">Avbryt</button>
-        </div>
-      </div>
-    </div>
-    <p style="margin-top:14px">Lägg till på hemskärm: Dela → Lägg till på hemskärm.</p>
-    <p><a href="mailto:pizzameny.app@gmail.com" style="color:#ff8a9a">pizzameny.app@gmail.com</a></p>
-    <a class="go" href="/legal.html" style="display:block;text-align:center;text-decoration:none;background:#2a2a2c;color:#fff">Villkor och integritet</a>
-    <button class="go" style="background:#2a2a2c" onclick="openContact()">Kontakt</button>
-    <button class="go" style="background:#2a2a2c" onclick="document.getElementById('meMask').classList.remove('on')">Stäng</button>
-    </div>
   </div>
 </div>
 <div class="mask" id="helpMask">
   <div class="sheet">
-    <button class="x" onclick="document.getElementById('helpMask').classList.remove('on')">✕</button>
+    <button class="x" onclick="closeMask('helpMask')" aria-label="Stäng">✕</button>
     <h3 id="helptitle">Pizza Meny</h3>
     <div id="helpApp">
       <p>En lista. Pizzeria, stad, nummer, karta och meny-länk. Sök. Slumpa. Ugnen väljer.</p>
-      <p>Konto: välj en tagg och verifiera e-post. Då kan du söka vänner på tagg, acceptera och se vad de tog. Inget syns utan accept.</p>
+      <p>Favoriter, egna betyg och senaste sökningar sparas bara i din telefon. Inget konto behövs.</p>
+      <p>Lägg till på hemskärmen: Dela → Lägg till på hemskärm.</p>
     </div>
     <div id="helpOwner" style="display:none">
-      <p>Öppna pizzerian. Tryck Äg. Skriv namn och nummer.</p>
-      <p>Vill synas högre? Kryssa i rutan. <span class="price">299 kr/mån</span>. Villkor när ni tecknar.</p>
+      <p>Äger du en pizzeria? Öppna den i listan och tryck Äg. Skriv ditt namn och nummer så ringer vi och bekräftar.</p>
+      <p>Saknas din pizzeria? Tryck Saknas? på startsidan.</p>
+      <p>Vill du synas högre? Kryssa i rutan. <span class="price">299 kr/mån</span>. Vi hör av oss med villkor.</p>
     </div>
+    <p class="desc small">Pizzerior delvis från <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener" style="color:#ff8a9a">© OpenStreetMap contributors</a> (ODbL).</p>
+    <button class="go" style="background:#2a2a2c" onclick="openContact()">Kontakt</button>
     <p><a href="mailto:pizzameny.app@gmail.com" style="color:#ff8a9a">pizzameny.app@gmail.com</a></p>
     <a class="go" href="/legal.html" style="display:block;text-align:center;text-decoration:none;background:#2a2a2c;color:#fff;margin-top:12px">Villkor och integritet</a>
-    <button class="go" onclick="document.getElementById('helpMask').classList.remove('on')">Ok</button>
+    <button class="go" onclick="closeMask('helpMask')">Ok</button>
   </div>
 </div>
 <div class="mask" id="contactMask">
   <div class="sheet">
-    <button class="x" onclick="document.getElementById('contactMask').classList.remove('on')">✕</button>
+    <button class="x" onclick="closeMask('contactMask')" aria-label="Stäng">✕</button>
     <h3>Kontakt</h3>
     <p>Pizzeria, press eller fel i listan.</p>
     <p><a href="mailto:pizzameny.app@gmail.com" style="color:#ff8a9a">pizzameny.app@gmail.com</a></p>
@@ -348,7 +308,8 @@ window.addEventListener("error",function(){
   if(s)s.textContent="Ladda om sidan.";
 });
 </script>
-<script src="app.js?v=20261030a"></script>
+<script src="app.js?v=20261030b"></script>
+<script defer src="/_vercel/insights/script.js"></script>
 <script>
 setTimeout(function(){
   if(typeof load!=="function"){
